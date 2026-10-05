@@ -10,8 +10,8 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-//Autentikasi Login di false supaya tidak keluar register
-Auth::routes(['register' => false]);
+//Autentikasi Login & Register
+Auth::routes(['register' => true]);
 
 
 //Grup yang digunakan Autentikasi

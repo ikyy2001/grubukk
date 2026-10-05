@@ -18,6 +18,14 @@
                                 <div class="text-center">
                                     <h1 class="h2 text-gray-900 mb-4">Masuk</h1>
                                 </div>
+                                @if (session('Success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ session('Success') }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                @endif
                                 <form class="user" method="POST" action="{{ route('login') }}">
                                     @csrf
                                     <div class="form-group" style="font-size: 20px; opacity:0.8;">
@@ -57,10 +65,12 @@
                                     </button>
                                 </form>
                                 <hr>
-                                <div class="text-center">
-                                    <a class="small btn btn-primary btn-user"
-                                        href="javascript:alert('Silahkan Hubungi Admin');"
-                                        style="border-radius:20px; padding: 5px 20px;">Lupa Password?</a>
+                                <div class="text-center d-flex justify-content-between align-items-center">
+                                    <a class="small font-weight-bold text-primary" href="{{ route('register') }}">
+                                        <i class="fa fa-user-plus mr-1"></i> Buat Akun Baru (Daftar)
+                                    </a>
+                                    <a class="small text-muted"
+                                        href="javascript:alert('Silahkan Hubungi Admin');">Lupa Password?</a>
                                 </div>
                             </div>
                         </div>

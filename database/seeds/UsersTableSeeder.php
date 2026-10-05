@@ -5,6 +5,7 @@ use App\Models\Golongan;
 use App\Models\Auth\User;
 use App\Models\Eselon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {

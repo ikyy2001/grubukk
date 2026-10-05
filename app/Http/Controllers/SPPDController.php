@@ -40,68 +40,88 @@ class SPPDController extends Controller
     {
         $user = User::getUser();
         $tempatb = User::enum_get('tempat', 'tempat_berangkat');
-        $kabid = User::select('nama')->where('role', 'Kepala Bidang')->first();
-        return view('sppd.users.entry', compact('user', 'tempatb', 'kabid'));
+        $pegawai = User::orderBy('nama', 'ASC')->get();
+        $kabids = User::where('role', 'Kepala Bidang')->orderBy('nama', 'ASC')->get();
+        if ($kabids->isEmpty()) {
+            $kabids = User::orderBy('nama', 'ASC')->get();
+        }
+        return view('sppd.users.entry', compact('user', 'tempatb', 'pegawai', 'kabids'));
     }
     public function storeentry(Request $request)
     {
-        $kabid = User::where('role', 'Kepala Bidang')->first();
-        $validation = $this->validate($request, [
+        $this->validate($request, [
             'Acara'             => 'required',
             'TempatBerangkat'   => 'required',
+            'TempatTujuan'      => 'required',
             'Tanggal_Berangkat' => 'required|date',
             'Tanggal_Kembali'   => 'required|date|after_or_equal:Tanggal_Berangkat'
         ]);
-        if ($request->TempatTujuan == null) {
-            session()->flash('Failed', 'Gagal Menambah SPPD');
-            return Redirect(Route('SPPD'));
-        }
-        if ($validation) {
-            $surat = Nosurat::getDataSurat();
-            Sppd::create([
-                'no_surat'      => $surat->no_surat,
-                'tahun_surat'   => $surat->tahun_surat,
-                'tgl_pergi'     => $request->Tanggal_Berangkat,
-                'tgl_kembali'   => $request->Tanggal_Kembali,
-                'acara'         => $request->Acara
-            ]);
-            $sppdid = Sppd::select('id')->orderBy('id', 'DESC')->first();
-            User::find(Auth::user()->id)->sppd()->attach($sppdid->id);
-            Tempat::create([
-                'sppd_id'           => $sppdid->id,
-                'tempat_berangkat'  => $request->TempatBerangkat,
-                'tempat_tujuan'     => $request->TempatTujuan
-            ]);
-            Kabid::create([
-                'sppd_id' => $sppdid->id,
-                'nama_kabid' => $kabid->nama,
-                'nip' => $kabid->nip,
-                'jabatan' => $kabid->jabatan->jabatan
-            ]);
-            Angkutan::create([
-                'sppd_id' => $sppdid->id
-            ]);
-            Keterangan::create([
-                'sppd_id' => $sppdid->id
-            ]);
-            Bbsppd::create([
-                'sppd_id' => $sppdid->id
-            ]);
-            // Update Surat
-            $this->updatenosurat($surat);
-            $dasar = Dasar::get();
-            foreach ($dasar as $isi) {
-                DasarSurat::create([
-                    'sppd_id'            => $sppdid->id,
-                    'dasar_surat'   => $isi->dasar
-                ]);
-            }
-            session()->flash('Success', 'Berhasil Menambah SPPD');
-            return Redirect(Route('SPPD'));    # code...
+
+        $pegawaiId = $request->Pegawai_id ?? Auth::id();
+        $assignedUser = User::find($pegawaiId) ?? User::find(Auth::id());
+
+        if ($request->Kabid_id) {
+            $kabid = User::find($request->Kabid_id);
         } else {
-            session()->flash('Failed', 'Gagal Menambah SPPD');
-            return Redirect(Route('SPPD'));
+            $kabid = User::where('role', 'Kepala Bidang')->first() ?? $assignedUser;
         }
+
+        $surat = Nosurat::getDataSurat();
+        $sppd = Sppd::create([
+            'no_surat'      => $surat->no_surat,
+            'tahun_surat'   => $surat->tahun_surat,
+            'tgl_pergi'     => $request->Tanggal_Berangkat,
+            'tgl_kembali'   => $request->Tanggal_Kembali,
+            'acara'         => $request->Acara
+        ]);
+
+        // Attach pegawai yang ditugaskan
+        if ($assignedUser) {
+            $assignedUser->sppd()->attach($sppd->id);
+        }
+        // Jika yang menginput berbeda dari yang diperintah, lampirkan juga pembuatnya agar bisa memantau
+        if (Auth::id() != $assignedUser->id) {
+            $creator = User::find(Auth::id());
+            if ($creator) {
+                $creator->sppd()->syncWithoutDetaching([$sppd->id]);
+            }
+        }
+
+        Tempat::create([
+            'sppd_id'           => $sppd->id,
+            'tempat_berangkat'  => $request->TempatBerangkat,
+            'tempat_tujuan'     => $request->TempatTujuan
+        ]);
+
+        Kabid::create([
+            'sppd_id'    => $sppd->id,
+            'nama_kabid' => $kabid->nama ?? 'Kepala Bidang',
+            'nip'        => $kabid->nip ?? '-',
+            'jabatan'    => ($kabid && $kabid->jabatan) ? $kabid->jabatan->jabatan : 'Kepala Bidang'
+        ]);
+
+        Angkutan::create([
+            'sppd_id' => $sppd->id
+        ]);
+        Keterangan::create([
+            'sppd_id' => $sppd->id
+        ]);
+        Bbsppd::create([
+            'sppd_id' => $sppd->id
+        ]);
+
+        // Update Surat
+        $this->updatenosurat($surat);
+        $dasar = Dasar::get();
+        foreach ($dasar as $isi) {
+            DasarSurat::create([
+                'sppd_id'     => $sppd->id,
+                'dasar_surat' => $isi->dasar
+            ]);
+        }
+
+        session()->flash('Success', 'Berhasil Menambah SPPD');
+        return Redirect(Route('SPPD'));
     }
     public function updatenosurat($surat)
     {

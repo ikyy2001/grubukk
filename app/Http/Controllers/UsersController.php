@@ -91,7 +91,7 @@ class UsersController extends Controller
             ]);
             Eselon::create([
                 'user_id' => $user_temp->id,
-                'golongan' => $request->Eselon
+                'nama_eselon' => $request->Eselon
             ]);
             session()->flash('Success', 'Berhasil Membuat User');
         } else {

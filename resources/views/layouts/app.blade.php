@@ -9,7 +9,7 @@
     {{-- CSRF Token  --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.nama', 'SPPD') }} - @yield('title')</title>
+    <title>{{ config('app.name', 'TripNav') }} - @yield('title')</title>
     <link rel="shortcut icon" href="{{ asset('img/gres.png') }}" type="image/x-icon">
 
     {{-- Script dan css yang digunakan untuk Pilihan NIP dan nama (Harus Online untuk skrip)  --}}
@@ -32,9 +32,9 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 {{-- Header Nama dan Logo --}}
-                <a class="navbar-brand" href="{{ url('/') }}" style="font-weight:bold;">
-                    <img src="{{ asset('img/gres.png') }}" alt="Logo" width="50px">
-                    {{ config('app.nama', 'SPPD') }} DPU SDA Jawa Timur
+                <a class="navbar-brand font-weight-bold" href="{{ url('/') }}">
+                    <img src="{{ asset('img/gres.png') }}" alt="Logo" width="40px" class="mr-2">
+                    {{ config('app.name', 'TripNav') }}
                 </a>
                 {{-- Hanya diperlukan kalau ukuran Kecil --}}
                 <button class="navbar-toggler" type="button" data-toggle="collapse"

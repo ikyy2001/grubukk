@@ -17,7 +17,7 @@ class User extends Authenticatable
 {
     use SoftDeletes;
     use Notifiable;
-    protected $fillable = ['nama', 'nip', 'alamat', 'password', 'tanggal_lahir', 'golongan','jabatan','created_at','updated_at','role'];
+    protected $fillable = ['nama', 'nip', 'alamat', 'password', 'tanggal_lahir', 'golongan','jabatan','created_at','updated_at','role', 'cek'];
     public function jabatan()
     {
         return $this->hasOne(Jabatan::class);
@@ -37,13 +37,20 @@ class User extends Authenticatable
 
     public static function enum_get($table, $column)
     {
-        $type = DB::select(DB::raw("SHOW COLUMNS FROM $table WHERE Field='{$column}'"))[0]->Type;
+        $columns = DB::select("SHOW COLUMNS FROM `{$table}` WHERE Field = ?", [$column]);
+        if (empty($columns)) {
+            return collect([]);
+        }
+        $type = $columns[0]->Type;
         preg_match('/^enum\((.*)\)$/', $type, $matches);
+        $enum = [];
         $no = 1;
-        foreach (explode(',', $matches[1]) as $value) {
-            $v = trim($value, "'");
-            $enum[$no] = $v;
-            $no++;
+        if (!empty($matches[1])) {
+            foreach (explode(',', $matches[1]) as $value) {
+                $v = trim($value, "'");
+                $enum[$no] = $v;
+                $no++;
+            }
         }
         return collect($enum);
     }
@@ -51,17 +58,20 @@ class User extends Authenticatable
     {
         $roles = collect($role);
         foreach ($roles as $role) {
-            if ($role == Auth::user()->role) {
+            if (Auth::check() && $role == Auth::user()->role) {
                 return True;
             }
         }
     }
     // Fungsi Diluar 
     public static function getUser(){
-        return User::get()->where('id',Auth::user()->id)->first();
+        return Auth::check() ? User::where('id', Auth::user()->id)->first() : null;
     }
-    public static function destroy($user)
+    public static function destroy($ids)
     {
-        $user->delete();
+        if ($ids instanceof \Illuminate\Database\Eloquent\Model) {
+            return $ids->delete();
+        }
+        return parent::destroy($ids);
     }
 }

@@ -46,17 +46,29 @@
                 <form method="POST" action="{{ Route('EntrySPPD') }}">
                     @csrf
                     <div class="form-group row d-flex align-items-center">
-                        <label for="Perintah" class="col-sm-4 col-form-label">Nama <div class="text-secondary small">( yang diperintah )</div></label>
+                        <label for="Pegawai_id" class="col-sm-4 col-form-label">Nama <div class="text-secondary small">( yang diperintah )</div></label>
                         <div class="col-sm-1 text-right">:</div>
                         <div class="col-sm-7">
-                            <input type="text" class="form-control justify-content" placeholder="Nama yang diperintah" required readonly value="{{ $user->nama }}" name="Nama">
+                            <select id="Pegawai_id" name="Pegawai_id" class="form-control" required>
+                                @foreach ($pegawai as $peg)
+                                <option value="{{ $peg->id }}" {{ $peg->id == $user->id ? 'selected' : '' }}>
+                                    {{ $peg->nip }} - {{ $peg->nama }} ({{ $peg->role }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="form-group row d-flex align-items-center">
-                        <label class="col-sm-4 col-form-label">Nama Kabid<div class="text-secondary small">( yang memberi perintah )</div></label>
+                        <label for="Kabid_id" class="col-sm-4 col-form-label">Nama Kabid<div class="text-secondary small">( yang memberi perintah )</div></label>
                         <div class="col-sm-1 text-right">:</div>
                         <div class="col-sm-7">
-                            <input type="text" class="form-control justify-content" placeholder="Nama Kabid PSDA" required readonly value="{{ $kabid->nama ?? 'Kabid Tidak Ada' }}" name="NamaKabid">
+                            <select id="Kabid_id" name="Kabid_id" class="form-control" required>
+                                @foreach ($kabids as $kb)
+                                <option value="{{ $kb->id }}">
+                                    {{ $kb->nip }} - {{ $kb->nama }} ({{ $kb->jabatan->jabatan ?? $kb->role }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <hr>
@@ -143,7 +155,8 @@
 @section('script-down')
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#nama').select2();
+        $('#Pegawai_id').select2();
+        $('#Kabid_id').select2();
         $('#TBerangkat').select2();
         $('#TTujuan').select2();
     });

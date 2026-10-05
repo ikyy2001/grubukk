@@ -12,7 +12,7 @@ class CreateSppdTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('no_surat');
             $table->year('tahun_surat');
-            $table->date('tgl_surat')->default(now());
+            $table->date('tgl_surat')->nullable();
             $table->date('tgl_pergi');
             $table->date('tgl_kembali');
             $table->string('acara');

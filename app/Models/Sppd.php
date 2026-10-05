@@ -100,6 +100,9 @@ class Sppd extends Model
     }
     public static function destroy($id)
     {
-        $id->delete();
+        if ($id instanceof \Illuminate\Database\Eloquent\Model) {
+            return $id->delete();
+        }
+        return parent::destroy($id);
     }
 }
