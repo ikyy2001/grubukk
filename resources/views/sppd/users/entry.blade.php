@@ -1,165 +1,122 @@
 @extends('layouts.app')
 
-@section('title', request()->path() )
+@section('title', 'Buat SPT / SPPD')
+
 @section('content')
-<style>
-    .select2-container--default
-    .select2-selection--single
-    .select2-selection__arrow {
-    top: 5px;
-    right: 10px;
-    }
-    .select2-container .select2-selection--single {
-        height: 38px;
-    }
-    .select2-container--default
-    .select2-selection--single
-    .select2-selection__rendered {
-    color: rgb(107, 107, 107);
-    line-height: 20px;
-    font-size: 0.8em;
-    }
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Buat Surat Perintah Tugas / Perjalanan Dinas</h1>
+        <p class="page-subtitle">Isi data untuk membuat SPT dan SPPD baru</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ route('SPPD') }}" class="btn btn--outline">
+            <x-icon name="arrow-left" :size="16" /> Kembali
+        </a>
+    </div>
+</div>
 
-</style>
-<div class="container-fluid" style="font-size: 20px">
-    {{-- Breadcrump --}}
-    @include('layouts.breadcrump')
-
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0"
-        style="background-color: rgb(0, 183, 255)">
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
+<form method="POST" action="{{ route('EntrySPPD') }}">
+    @csrf
+    <div class="card card--pad-lg" style="margin-bottom:16px">
+        <div class="card-head">
+            <div>
+                <h2 class="card-title">Pejabat yang Berwenang</h2>
+                <p class="card-note">Pilih pegawai yang diperintah dan pejabat pemberi perintah</p>
+            </div>
         </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            @include('layouts.help')
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4" id="v-pills-tabContent">
-                @if (session()->get('Failed'))
-                <div class="alert alert-danger">
-                    {{ session()->get('Failed') }}
-                </div>
-                @endif
-                <h3 class="text-center">Surat Perintah Tugas (SPT) <br> Surat Perintah Perjalanan Dinas (SPPD)</h3>
-                <hr>
-                <form method="POST" action="{{ Route('EntrySPPD') }}">
-                    @csrf
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="Pegawai_id" class="col-sm-4 col-form-label">Nama <div class="text-secondary small">( yang diperintah )</div></label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class="col-sm-7">
-                            <select id="Pegawai_id" name="Pegawai_id" class="form-control" required>
-                                @foreach ($pegawai as $peg)
-                                <option value="{{ $peg->id }}" {{ $peg->id == $user->id ? 'selected' : '' }}>
-                                    {{ $peg->nip }} - {{ $peg->nama }} ({{ $peg->role }})
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="Kabid_id" class="col-sm-4 col-form-label">Nama Kabid<div class="text-secondary small">( yang memberi perintah )</div></label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class="col-sm-7">
-                            <select id="Kabid_id" name="Kabid_id" class="form-control" required>
-                                @foreach ($kabids as $kb)
-                                <option value="{{ $kb->id }}">
-                                    {{ $kb->nip }} - {{ $kb->nama }} ({{ $kb->jabatan->jabatan ?? $kb->role }})
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="Maksud" class="col-sm-4 col-form-label">Acara <div class="text-secondary small">( Maksud Perjalanan Dinas )</div></label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class="col-sm-7">
-                            <input type="text" class="form-control justify-content" id="Maksud" placeholder="Ketikkan Maksud Perjalanan Dinas.." required name="Acara" value="{{ old('Acara') }}">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="TBerangkat" class="col-sm-4 col-form-label">Tempat Berangkat</label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class=" d-flex col-7 justify-content-center">
-                            <select id="TBerangkat" name="TempatBerangkat" class="form-control" required autofocus>
-                                <?php $no = 1; ?>
-                                <option disabled style="color: black">==========Dalam Daerah==========</option>
-                                <hr>
-                                @foreach ($tempatb as $tempat)
-                                @if ($no == 32)
-                                    <option disabled class="text-center">==========Luar Daerah==========</option>
-                                @endif
-                                <option @if ($tempat == "Surabaya")
-                                    selected
-                                @endif value="{{ $no }}">{{ $tempat }}</option>
-                                <?php $no++; ?>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="TTujuan" class="col-sm-4 col-form-label">Tempat Tujuan</label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class=" d-flex col-7 justify-content-center">
-                            <select id="TTujuan" name="TempatTujuan" class="form-control" required autofocus>
-                                <option disabled selected style="color: black">- Ketik Tempat Tujuan -</option>
-                                <?php $no = 1; ?>
-                                <option disabled style="color: black">==========Dalam Daerah==========</option>
-                                <hr>
-                                @foreach ($tempatb as $tempat)
-                                @if ($no == 32)
-                                    <option disabled class="text-center">==========Luar Daerah==========</option>
-                                @endif
-                                <option value="{{ $no }}">{{ $tempat }}</option>
-                                <?php $no++; ?>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="Tgl_berangkat" class="col-sm-4 col-form-labe ">Tanggal Berangkat</label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class="col-sm-4">
-                            <input type="date" class="form-control justify-content @error('Tanggal_Berangkat') is-invalid @enderror" id="Tgl_berangkat" placeholder="Tanggal Berangkat.." required name="Tanggal_Berangkat" >
-                        </div>
-                    </div>
-                    <div class="form-group row d-flex align-items-center">
-                        <label for="Tgl_kembali" class="col-sm-4 col-form-label">Tanggal Kembali</label>
-                        <div class="col-sm-1 text-right">:</div>
-                        <div class="col-sm-4">
-                            <input type="date" class="form-control justify-content @error('Tanggal_Kembali') is-invalid @enderror" id="Tgl_kembali" placeholder="Tanggal" required name="Tanggal_Kembali">
-                            @error('Tanggal_Kembali')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                        </div>
-                        
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-md float-right">BUAT SPPD</button>
-                </form>
-                <br>
-                <br>
-                <hr>
+        <div class="form-grid">
+            <div class="form-row" style="grid-column: 1 / -1">
+                <label class="form-label">Yang Diperintah</label>
+                <select name="Pegawai_id" class="select" required>
+                    @foreach ($pegawai as $peg)
+                        <option value="{{ $peg->id }}" {{ $peg->id == ($user->id ?? null) ? 'selected' : '' }}>
+                            {{ $peg->nip }} - {{ $peg->nama }} ({{ $peg->role }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row" style="grid-column: 1 / -1">
+                <label class="form-label">Pejabat Pemberi Perintah (Kepala Bidang)</label>
+                <select name="Kabid_id" class="select" required>
+                    @foreach ($kabids as $kb)
+                        <option value="{{ $kb->id }}">
+                            {{ $kb->nip }} - {{ $kb->nama }} ({{ $kb->jabatan->jabatan ?? $kb->role }})
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
     </div>
-</div>
-@endsection
 
+    <div class="card card--pad-lg" style="margin-bottom:16px">
+        <div class="card-head">
+            <div>
+                <h2 class="card-title">Maksud Perjalanan Dinas</h2>
+                <p class="card-note">Detail acara dan lokasi</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-row" style="grid-column: 1 / -1">
+                <label class="form-label">Acara (Maksud Perjalanan Dinas)</label>
+                <input type="text" class="input" name="Acara" value="{{ old('Acara') }}" placeholder="Ketikkan maksud perjalanan dinas..." required>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Tempat Berangkat</label>
+                <select name="TempatBerangkat" class="select" required>
+                    @php $no = 1; @endphp
+                    <option disabled>========== Dalam Daerah ==========</option>
+                    @foreach ($tempatb as $tempat)
+                        @if ($no == 32)
+                            <option disabled>========== Luar Daerah ==========</option>
+                        @endif
+                        <option value="{{ $no }}" @if ($tempat == "Surabaya") selected @endif>{{ $tempat }}</option>
+                        @php $no++; @endphp
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Tempat Tujuan</label>
+                <select name="TempatTujuan" class="select" required>
+                    <option disabled selected>Pilih tempat tujuan...</option>
+                    @php $no = 1; @endphp
+                    <option disabled>========== Dalam Daerah ==========</option>
+                    @foreach ($tempatb as $tempat)
+                        @if ($no == 32)
+                            <option disabled>========== Luar Daerah ==========</option>
+                        @endif
+                        <option value="{{ $no }}">{{ $tempat }}</option>
+                        @php $no++; @endphp
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
 
-@section('script-down')
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#Pegawai_id').select2();
-        $('#Kabid_id').select2();
-        $('#TBerangkat').select2();
-        $('#TTujuan').select2();
-    });
-</script>
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
+    <div class="card card--pad-lg">
+        <div class="card-head">
+            <div>
+                <h2 class="card-title">Waktu Pelaksanaan</h2>
+                <p class="card-note">Tanggal berangkat dan kembali</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label">Tanggal Berangkat</label>
+                <input type="date" class="input @error('Tanggal_Berangkat') is-invalid @enderror" name="Tanggal_Berangkat" required>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Tanggal Kembali</label>
+                <input type="date" class="input @error('Tanggal_Kembali') is-invalid @enderror" name="Tanggal_Kembali" required>
+                @error('Tanggal_Kembali')
+                    <div style="color:var(--neg-text); font-size:12px; margin-top:4px">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-top:20px">
+            <button type="submit" class="btn btn--primary">
+                <x-icon name="file-plus" :size="16" /> Buat SPPD
+            </button>
+        </div>
+    </div>
+</form>
 @endsection

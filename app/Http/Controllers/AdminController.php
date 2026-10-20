@@ -12,7 +12,9 @@ class AdminController extends Controller
     public function datasppd()
     {
         $user = User::getUser();
-        $sppd = sppd::orderBy('created_at','DESC')->paginate(5);
-        return view('sppd.admin.sppd', compact('user','sppd'));
+        $sppd = Sppd::with(['user:id,nama,nip,role', 'tempat'])
+            ->orderBy('created_at', 'DESC')
+            ->paginate(10);
+        return view('sppd.admin.sppd', compact('user', 'sppd'));
     }
 }

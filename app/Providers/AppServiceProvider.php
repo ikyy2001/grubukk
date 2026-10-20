@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.essential');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.essential');
     }
 }

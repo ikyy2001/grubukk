@@ -25,15 +25,14 @@ class SPPDController extends Controller
     public function index(Request $request)
     {
         $user = User::getUser();
+        $q = $user->sppd()->with(['user:id,nama,nip,role', 'tempat'])->orderBy('id', 'desc');
         if ($request->search) {
-            if ($request->search >= 1) {
-                $sppd = $user->sppd()->orderBy('id', 'desc')->where('no_surat', 'LIKE', '%' . $request->search . '%')->paginate(5);
-            } else {
-                $sppd = $user->sppd()->orderBy('id', 'desc')->where('acara', 'LIKE', '%' . $request->search . '%')->paginate(5);
-            }
-        } else {
-            $sppd = $user->sppd()->orderBy('id', 'desc')->paginate(5);
+            $q->where(function ($qq) use ($request) {
+                $qq->where('no_surat', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('acara', 'LIKE', '%' . $request->search . '%');
+            });
         }
+        $sppd = $q->paginate(10)->withQueryString();
         return view('sppd.users.sppd', compact('user', 'sppd'));
     }
     public function entry()
@@ -158,7 +157,7 @@ class SPPDController extends Controller
         $sppd = Sppd::getSppd($id);
         if ($this->CekUserSppd($user, $sppd)) {
             $sppd = $sppd->first();
-            $lama = Sppd::selisih($sppd->tgl_pergi, $sppd->tgl_pergi);
+            $lama = Sppd::selisih($sppd->tgl_pergi, $sppd->tgl_kembali);
             return view('sppd.users.edit', compact('user', 'sppd', 'lama'));
         } else {
             return view('sppd.users.akses', compact('user'));
@@ -167,9 +166,9 @@ class SPPDController extends Controller
     public function addfollower($id)
     {
         $user = User::getUser();
-        $all_user = User::get();
+        $all_user = User::with('jabatan')->where('cek', 1)->orderBy('nama', 'asc')->get();
         $sppduser = Sppd_user::orderBy('created_at', 'ASC')->where('sppd_id', $id)->get();
-        $sppduserpegawai = User::select()->get();
+        $sppduserpegawai = User::get();
         $sppd = Sppd::getSppd($id);
         if ($this->CekUserSppd($user, $sppd)) {
             $sppd = $sppd->first();
@@ -260,7 +259,7 @@ class SPPDController extends Controller
         $program = Program::get();
         $kegiatan = Kegiatan::get();
         $rekening = Rekening::get();
-        $bbsppd = Bbsppd::get()->where('sppd_id',$id)->first();
+        $bbsppd = Bbsppd::where('sppd_id', $id)->first();
         if ($this->CekUserSppd($user, $sppd)) {
             $sppd = $sppd->first();
             return view('sppd.users.bebanbiaya', compact('user', 'sppd','skpd','program','kegiatan','rekening','bbsppd'));
@@ -277,7 +276,7 @@ class SPPDController extends Controller
             'kegiatan' => $request->Kegiatan,
             'rekening' => $request->KodeRekening
         ]);
-        session()->flash('Success', 'Berhasil Set Kendaraan Sewa');
+        session()->flash('Success', 'Berhasil Set Pembebanan Anggaran');
         return back();
     }
     public function selesai($id)

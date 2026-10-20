@@ -1,45 +1,33 @@
-
 @extends('layouts.app')
 
-@section('title',  request()->path() )
+@section('title', request()->path())
+
 @section('content')
-<div class="container-fluid" style="font-size: 20px">
-    @include('layouts.breadcrump')
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0" style="background-color: rgb(0, 183, 255)">
-        @if ($user->role_check(['Admin']))
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
-        </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            @include('layouts.help')
-            
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4" id="v-pills-tabContent">
-                <h3 class="text-center">Edit SKPD</h3>
-                <br>
-                <form action="{{ Route('SKPD') }}/{{ $skpd->id }}/edit" method="post" class="form-group row d-flex align-items-center">
-                    @method('patch')
-                    @csrf
-                    <label for="Role" class="col-sm-3 col-form-label">Edit SKPD</label>
-                    <div class="col-sm-1 text-right">:</div>
-                    <div class="col-sm-8">
-                        <textarea class="form-control justify-content-center" id="SKPD" placeholder="SKPD" name="SKPD">{{ $skpd->skpd }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-block btn-primary btn-sm mt-3" data-toggle="modal" data-target="#Modal{{ $skpd->id }}">Simpan</button>
-                </form>
-            </div>
-        </div>
-        @else
-        @include('layouts.akses')
-        @endif
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">{{ $user->role ?? '' }}</div>
+      <h1 class="page-title">Edit SKPD</h1>
+      <p class="page-sub muted">Ubah data SKPD.</p>
     </div>
-</div>
+    <div class="page-actions">
+      <a href="{{ route('SKPD') }}" class="btn btn--outline">Kembali</a>
+    </div>
+  </div>
 
+  <section class="card card--pad-lg" style="max-width: 800px">
+    <form action="{{ route('SKPD') }}/{{ $skpd->id }}/edit" method="post">
+      @method('patch')
+      @csrf
+      <div class="form-grid form-grid--full">
+        <div class="form-field">
+          <label for="SKPD" class="form-label">SKPD</label>
+          <textarea class="textarea" id="SKPD" name="SKPD" placeholder="Ketik SKPD...">{{ $skpd->skpd }}</textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <a href="{{ route('SKPD') }}" class="btn btn--outline">Batal</a>
+        <button type="submit" class="btn btn--primary">Simpan</button>
+      </div>
+    </form>
+  </section>
 @endsection
-
-@section('script-down')
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
-@endsection
-

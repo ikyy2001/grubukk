@@ -1,5 +1,5 @@
 <?php
-include(app_path().'\FPDF\fpdf.php');
+include_once(app_path('FPDF/fpdf.php'));
 
 // On Off Border
 $border = 0;

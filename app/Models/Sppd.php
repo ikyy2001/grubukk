@@ -14,6 +14,11 @@ class Sppd extends Model
 {
     protected $table = 'sppd';
     protected $guarded = ['id'];
+    protected $casts = [
+        'tgl_pergi'   => 'date',
+        'tgl_kembali' => 'date',
+        'tgl_surat'   => 'date',
+    ];
 
     public function user()
     {
@@ -49,18 +54,34 @@ class Sppd extends Model
     }
     public static function getSppd($id)
     {
-        return Sppd::get()->where('id', $id);
+        // Muat satu SPPD lengkap dengan relasinya (bukan seluruh tabel).
+        $sppd = static::with([
+            'user:id,nama,nip,role',
+            'tempat',
+            'bbsppd',
+            'kabid',
+            'angkutan',
+            'keterangan',
+            'dasar_surat',
+        ])->find($id);
+
+        return collect([$sppd])->filter();
     }
 
     public static function CekUserSppd($id_user, $id_sppd)
     {
-        foreach ($id_sppd as $sppd_data ) {
-            foreach ($sppd_data->user as $user) {
-                if (($user->id == $id_user->id || $id_user->role == 'Admin' )) {
-                    return true;
-                }
+        if (!$id_user) {
+            return false;
+        }
+        if ($id_user->role === 'Admin') {
+            return true;
+        }
+        foreach ($id_sppd as $sppd_data) {
+            if ($sppd_data->user->contains('id', $id_user->id)) {
+                return true;
             }
         }
+        return false;
     }
     public static function selisih($awal, $akhir)
     {

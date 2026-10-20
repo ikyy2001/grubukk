@@ -1,55 +1,41 @@
 @extends('layouts.app')
 
-@section('title', request()->path() )
+@section('title', 'Aksi SPPD')
+
 @section('content')
-<div class="container-fluid" style="font-size: 20px">
-    {{-- Breadcrump --}}
-    @include('layouts.breadcrump')
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0"
-        style="background-color: rgb(0, 183, 255)">
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
-        </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            <div class="row justify-content-end">
-                <div class="col-12">@include('layouts.help')</div>
-            </div>
-
-
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4 row justify-content-center" id="v-pills-tabContent">
-                <div class="row justify-content-start col-12 mb-2">
-                    <a href="{{ Route('SPPD') }}" class="btn btn-primary">
-                        <i class="fa fa-arrow-circle-o-left"></i>
-                        Kembali
-                    </a>
-                </div>
-                <div class="tab-content bg-light rounded-lg shadow p-4 mt-2  mb-5 col-12" id="v-pills-tabContent">
-                    <div class="text-center justify-content-center">
-                        <h4>Surat Perintah Perjalanan Dinas</h4>
-                        <hr>
-                        <div class="d-flex justify-content-center">
-                            <a href="{{ Route('CetakSPT') }}/{{ $sppd->id }}" target="_blank"class="btn-lg btn-block btn-info shadow-sm mb-2"
-                                style="font-weight: 600; text-decoration:none;">Cetak SPT</a>
-                        </div>
-                        <div class="d-flex justify-content-center">
-                            <a href="{{ Route('CetakSPPD') }}/{{ $sppd->id }}" target="_blank"  class="btn-lg btn-info shadow-sm mb-2 col-12 m-1"
-                                style="font-weight: 600; text-decoration:none">Cetak SPPD</a>
-                        </div>
-                        <div class="d-flex justify-content-center">
-                            <a href="{{ Route('SPPD') }}/{{$sppd->id}}/add"
-                                class="btn btn-primary shadow-sm mb-2 col-12 m-1" style="font-weight: 600">Lengkapi Data</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Surat Perintah Perjalanan Dinas</h1>
+        <p class="page-subtitle">Pilih tindakan untuk SPPD ini</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ route('SPPD') }}" class="btn btn--outline">
+            <x-icon name="arrow-left" :size="16" /> Kembali
+        </a>
     </div>
 </div>
-@endsection
 
-@section('script-down')
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
+<div class="card card--pad-lg" style="max-width: 640px; margin: 0 auto">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title">Opsi Cetak & Pengisian</h2>
+            <p class="card-note">Cetak dokumen atau lengkapi data perjalanan dinas</p>
+        </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+        <a href="{{ route('CetakSPT') }}/{{ $sppd->id }}" target="_blank" class="btn btn--outline" style="justify-content:flex-start">
+            <x-icon name="printer" :size="16" /> Cetak SPT
+        </a>
+        <a href="{{ route('CetakSPPD') }}/{{ $sppd->id }}" target="_blank" class="btn btn--outline" style="justify-content:flex-start">
+            <x-icon name="printer" :size="16" /> Cetak SPPD
+        </a>
+        <a href="{{ route('CetakKWITANSI') }}/{{ $sppd->id }}" target="_blank" class="btn btn--outline" style="justify-content:flex-start">
+            <x-icon name="receipt" :size="16" /> Cetak Kwitansi
+        </a>
+        <hr style="border:none; border-top:1px solid var(--border); margin: 8px 0">
+        <a href="{{ route('SPPD') }}/{{ $sppd->id }}/add" class="btn btn--primary" style="justify-content:flex-start">
+            <x-icon name="file-edit" :size="16" /> Lengkapi Data
+        </a>
+    </div>
+</div>
 @endsection

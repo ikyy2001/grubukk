@@ -1,80 +1,37 @@
-@extends('layouts.app') {{-- Template Master --}}
+@extends('layouts.app')
+@section('title', 'Masuk')
 
-@section('title', $path)
 @section('content')
-<style>
-    .select2-container--default .select2-selection--single {
-        border-radius: 25px;
-    }
-</style>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-xl-6 col-lg-12 col-md-9">
-            <div class="card o-hidden border-0 shadow-lg my-5">
-                <div class="card-body p-0">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="p-5">
-                                <div class="text-center">
-                                    <h1 class="h2 text-gray-900 mb-4">Masuk</h1>
-                                </div>
-                                @if (session('Success'))
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    {{ session('Success') }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                @endif
-                                <form class="user" method="POST" action="{{ route('login') }}">
-                                    @csrf
-                                    <div class="form-group" style="font-size: 20px; opacity:0.8;">
-                                        <select id="username" name="nip"
-                                            class="form-control form-control-user @error('nip') is-invalid @enderror"
-                                            required autocomplete="nip" autofocus placeholder="Ketik Nama atau NIP">
-                                            <option disabled selected>- Ketik Nama atau NIP -</option>
-                                            @foreach ($values as $value)
-                                            <option value="{{ $value->nip }}">{{ $value->nip }} - {{ $value->nama }}
-                                            </option>
-                                            @endforeach
-                                        </select>
-                                        @error('nip')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{!! $message !!}</strong>
-                                        </span>
-                                        @enderror
-                                    </div>
-                                    <script type="text/javascript">
-                                        $(document).ready(function() {
-                                            $('#username').select2();
-                                        });
-                                    </script>
-                                    <div class="form-group">
-                                        <input id="password" type="password"
-                                            class="form-control form-control-user @error('password') is-invalid @enderror"
-                                            name="password" required autocomplete="current-password"
-                                            placeholder="Password">
-                                        @error('password')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                        @enderror
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-user btn-block"
-                                        style="font-size:20px; padding-top:8px; padding-bottom:8px"> {{ __('Login') }}
-                                    </button>
-                                </form>
-                                <hr>
-                                <div class="text-center d-flex justify-content-between align-items-center">
-                                    <a class="small font-weight-bold text-primary" href="{{ route('register') }}">
-                                        <i class="fa fa-user-plus mr-1"></i> Buat Akun Baru (Daftar)
-                                    </a>
-                                    <a class="small text-muted"
-                                        href="javascript:alert('Silahkan Hubungi Admin');">Lupa Password?</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endsection
+<form method="POST" action="{{ route('login') }}" autocomplete="on">
+  @csrf
+  <div class="form-field" style="margin-bottom:16px">
+    <label class="form-label" for="nip">NIP</label>
+    <select id="nip" name="nip" class="select" required>
+      <option value="" disabled selected>Pilih NIP / Nama Pegawai</option>
+      @foreach ($values as $value)
+        <option value="{{ $value->nip }}" {{ old('nip') == $value->nip ? 'selected' : '' }}>{{ $value->nip }} — {{ $value->nama }}</option>
+      @endforeach
+    </select>
+    @error('nip')
+      <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+  </div>
+
+  <div class="form-field" style="margin-bottom:20px">
+    <label class="form-label" for="password">Kata Sandi</label>
+    <input id="password" type="password" name="password" class="input" placeholder="Masukkan kata sandi" required autocomplete="current-password">
+    @error('password')
+      <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+  </div>
+
+  <button type="submit" class="btn btn--primary btn--block">
+    <x-icon name="log-out" :size="16" /> Masuk
+  </button>
+</form>
+
+<div class="form-actions--between" style="margin-top:16px; align-items:center">
+  <a href="{{ route('register') }}" class="btn btn--ghost btn--sm"><x-icon name="user-plus" :size="16" /> Daftar Akun Baru</a>
+  <a href="javascript:alert('Silakan hubungi Administrator untuk mereset kata sandi Anda.')" class="form-hint">Lupa kata sandi?</a>
+</div>
+@endsection

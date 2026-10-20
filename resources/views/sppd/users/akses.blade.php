@@ -1,38 +1,14 @@
 @extends('layouts.app')
 
-@section('title', request()->path() )
+@section('title', 'Akses Ditolak')
+
 @section('content')
-<div class="container-fluid" style="font-size: 20px">
-    {{-- Breadcrump --}}
-    @include('layouts.breadcrump')
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0"
-        style="background-color: rgb(0, 183, 255)">
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
-        </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            @include('layouts.help')
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4" id="v-pills-tabContent">
-                <div class="tab-content bg-light rounded-lg shadow p-4" id="v-pills-tabContent">
-                    <div class="container-fluid">
-                        <div class="row justify-content-center">
-                            <div class="text-center">
-                                <h5>Maaf Anda Tidak Punya akses untuk membuka SPPD halaman ini <br>
-                                <a href="{{ Route('SPPD') }}">Klik Disini</a> <br>
-                                Untuk Kembali</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="card card--pad-lg" style="max-width: 560px; margin: 40px auto; text-align:center">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:12px">
+        <x-icon name="lock" :size="48" />
+        <h2>Akses Ditolak</h2>
+        <p class="muted">Maaf, Anda tidak memiliki akses untuk membuka halaman ini.</p>
+        <a href="{{ route('SPPD') }}" class="btn btn--primary">Kembali ke SPPD Saya</a>
     </div>
 </div>
-@endsection
-
-@section('script-down')
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
 @endsection

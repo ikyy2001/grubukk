@@ -6,14 +6,13 @@ use App\Models\Jabatan;
 use App\Models\Auth\User;
 use App\Models\Eselon;
 use App\Models\Golongan;
+use App\Models\Sppd;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Contracts\Session\Session;
-use Symfony\Component\VarDumper\Caster\EnumStub;
 
 class UsersController extends Controller
 {
@@ -25,17 +24,93 @@ class UsersController extends Controller
     // Dashboard
     public function dashboard()
     {
-        return view('dashboard', ['user' => User::getUser()]);
+        $user = User::getUser();
+        $isAdmin = $user->role === 'Admin';
+
+        // Kueri dasar SPPD: admin melihat seluruh SPPD, yang lain miliknya sendiri.
+        $base = function () use ($isAdmin, $user) {
+            $q = Sppd::query();
+            if (!$isAdmin) {
+                $q->whereHas('user', fn ($qq) => $qq->whereKey($user->getKey()));
+            }
+            return $q;
+        };
+
+        $totalSppd = (clone $base())->count();
+        $now = now();
+
+        $bulanIni = (clone $base())
+            ->whereBetween('tgl_pergi', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()])
+            ->count();
+        $bulanLalu = (clone $base())
+            ->whereBetween('tgl_pergi', [$now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth()])
+            ->count();
+        $berjalan = (clone $base())
+            ->whereDate('tgl_pergi', '<=', $now->toDateString())
+            ->whereDate('tgl_kembali', '>=', $now->toDateString())
+            ->count();
+
+        // Deret 8 bulan terakhir untuk sparkline & grafik ringkas.
+        $months = collect(range(7, 0))->map(fn ($i) => $now->copy()->subMonths($i)->startOfMonth());
+        $perMonth = (clone $base())
+            ->selectRaw("DATE_FORMAT(tgl_pergi, '%Y-%m') AS ym, COUNT(*) AS c")
+            ->groupBy('ym')
+            ->pluck('c', 'ym');
+
+        $series = $months->map(fn ($m) => (int) ($perMonth[$m->format('Y-m')] ?? 0))->values();
+        $spark = $series->slice(-8)->values();
+
+        $thisYearTotal = (clone $base())->whereYear('tgl_pergi', $now->year)->count();
+        $lastYearTotal = (clone $base())->whereYear('tgl_pergi', $now->year - 1)->count();
+
+        $deltaPct = $bulanLalu > 0
+            ? round(($bulanIni - $bulanLalu) / $bulanLalu * 100, 1)
+            : ($bulanIni > 0 ? 100.0 : 0.0);
+
+        $pegawaiAktif = User::where('cek', 1)->count();
+        $roleCounts = User::where('cek', 1)
+            ->selectRaw('role, COUNT(*) AS c')
+            ->groupBy('role')
+            ->pluck('c', 'role');
+
+        $recent = (clone $base())
+            ->with(['user', 'tempat'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $bulanLabels = $months->map(fn ($m) => $m->isoFormat('MMM'))->values();
+
+        return view('dashboard', [
+            'user'          => $user,
+            'totalSppd'     => $totalSppd,
+            'bulanIni'      => $bulanIni,
+            'deltaPct'      => $deltaPct,
+            'berjalan'      => $berjalan,
+            'spark'         => $spark,
+            'series'        => $series,
+            'bulanLabels'   => $bulanLabels,
+            'thisYearTotal' => $thisYearTotal,
+            'lastYearTotal' => $lastYearTotal,
+            'pegawaiAktif'  => $pegawaiAktif,
+            'roleCounts'    => $roleCounts,
+            'recent'        => $recent,
+        ]);
     }
     // Pegawai & show Pegawai
     public function pegawai(Request $request)
     {
+        $q = User::with(['jabatan', 'golongan'])
+            ->where('cek', 1)
+            ->orderBy('nama', 'asc');
         if ($request->search) {
-            $users = User::orderBy('nama', 'asc')->where('cek', 1)->where('nama', 'LIKE', '%' . $request->search . '%')->orwhere('nip', 'LIKE', '%' . $request->search . '%')->paginate(5);
-        } else {
-            $users = User::orderBy('nama', 'asc')->where('cek', 1)->paginate(5);
+            $q->where(function ($qq) use ($request) {
+                $qq->where('nama', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('nip', 'LIKE', '%' . $request->search . '%');
+            });
         }
-        return view('users.pegawai.pegawai', ['users' => $users], ['user' => User::getUser()]);
+        $users = $q->paginate(10)->withQueryString();
+        return view('users.pegawai.pegawai', ['users' => $users, 'user' => User::getUser()]);
     }
     public function nip($nip)
     {
@@ -46,12 +121,15 @@ class UsersController extends Controller
     // Administrator Show Users, Create User , Store User
     public function show(Request $request)
     {
+        $q = User::with(['jabatan', 'golongan'])->orderBy('nama', 'asc');
         if ($request->search) {
-            $users = User::orderBy('nama', 'asc')->where('nama', 'LIKE', '%' . $request->search . '%')->orwhere('nip', 'LIKE', '%' . $request->search . '%')->paginate(5);
-        } else {
-            $users = User::orderBy('nama', 'asc')->paginate(5);
+            $q->where(function ($qq) use ($request) {
+                $qq->where('nama', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('nip', 'LIKE', '%' . $request->search . '%');
+            });
         }
-        return view('users.admin.users', ['users' => $users], ['user' => User::getUser()]);
+        $users = $q->paginate(10)->withQueryString();
+        return view('users.admin.users', ['users' => $users, 'user' => User::getUser()]);
     }
     public function create()
     {
@@ -68,7 +146,9 @@ class UsersController extends Controller
             'Password'  =>  'required|min:5',
             'Role'      =>  'required|numeric'
         ]);
-        $Cek = User::select('nip')->where('nip', $request->NIP)->count();
+        // Kolom `role` bertipe enum teks; peta angka 1-4 dari form ke nilai enum.
+        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff'];
+        $Cek = User::where('nip', $request->NIP)->count();
 
         if ($Cek != True) {
             User::create([
@@ -78,7 +158,7 @@ class UsersController extends Controller
                 'password'  => Hash::make($request->Password),
                 'tanggal_lahir'  => $request->TglLahir,
                 'created_at' => now(),
-                'role'      => $request->Role
+                'role'      => $roleMap[$request->Role] ?? 'Staff'
             ]);
             $user_temp = User::select('id')->where('nip', $request->NIP)->first();
             Jabatan::create([
@@ -142,18 +222,19 @@ class UsersController extends Controller
     }
     public function storeedituser(Request $request, $nip)
     {
-        $user_pegawai = User::select('*')->where('nip', $nip)->first();
+        $user_pegawai = User::where('nip', $nip)->firstOrFail();
         $this->validate($request, [
             'Nama'      => 'required',
             'NIP'       =>  'required|min:10|numeric'
         ]);
-        $user = User::select()->where('id', $user_pegawai->id)->first();
+        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff'];
+        $user = $user_pegawai;
         $user->update([
             'nama'      => $request->Nama,
             'nip'       => $request->NIP,
             'alamat'    => $request->Alamat,
             'tanggal_lahir'  => $request->TglLahir,
-            'role'      => $request->Role,
+            'role'      => $roleMap[$request->Role] ?? $user->role,
             'updated_at' => now()
         ]);
         $user->jabatan->update([
@@ -170,10 +251,9 @@ class UsersController extends Controller
     }
     public function deluser($nip)
     {
-        $user_pegawai = User::select('*')->where('nip', $nip)->first();
-        $user_pegawai->update([
-            'role' => 4
-        ]);
+        $user_pegawai = User::where('nip', $nip)->firstOrFail();
+        // Tandai tidak aktif lalu soft-delete (kolom `role` adalah enum, jangan diisi angka).
+        $user_pegawai->update(['cek' => 0]);
         User::destroy($user_pegawai);
         session()->flash('Success', 'Berhasil Menghapus User');
         return Redirect(Route('Admin/Show'));
@@ -244,8 +324,15 @@ class UsersController extends Controller
     }
     public function del()
     {
-        $this->destroy(User::getUser());
-        return Redirect(Route('Dashboard'));
+        $user = User::getUser();
+        if ($user) {
+            $user->update(['cek' => 0]);
+            $user->delete();
+        }
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        return Redirect()->route('login');
     }
 
 

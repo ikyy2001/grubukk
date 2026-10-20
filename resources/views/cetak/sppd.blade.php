@@ -1,7 +1,7 @@
 <?php
-include(app_path().'\FPDF\fpdf.php');
-include(app_path().'\FPDF\exfpdf.php');
-include(app_path().'\FPDF\easyTable.php');
+include_once(app_path('FPDF/fpdf.php'));
+include_once(app_path('FPDF/exfpdf.php'));
+include_once(app_path('FPDF/easyTable.php'));
 
 // On Off Border
 $border = 0;

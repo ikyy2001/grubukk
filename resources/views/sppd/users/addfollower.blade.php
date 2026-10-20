@@ -1,135 +1,87 @@
 @extends('layouts.app')
 
-@section('title', request()->path() )
+@section('title', 'Tambah Pengikut')
+
 @section('content')
-<style>
-    .select2-container--default .select2-results__option[aria-disabled="true"] {
-        color: rgb(196, 196, 196);
-    }
-
-</style>
-<div class="container-fluid" style="font-size: 20px">
-    {{-- Breadcrump --}}
-    @include('layouts.breadcrump')
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0"
-        style="background-color: rgb(0, 183, 255)">
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
-        </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            <div class="row justify-content-between">
-                <div class="col-12">@include('layouts.help')</div>
-            </div>
-            
-            
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4 row justify-content-center" id="v-pills-tabContent">
-                @if (session()->get('Success'))
-                <div class="alert alert-success col-12">
-                    {{ session()->get('Success') }}
-                </div>
-                @endif
-                @if (session()->get('Failed'))
-                <div class="alert alert-danger">
-                    {{ session()->get('Failed') }}
-                </div>
-                @endif
-                @include('layouts.sppdnav')
-                <div class="tab-content bg-light rounded-lg shadow p-4 mb-5 col-12" id="v-pills-tabContent">
-                    <div class="row justify-content-start">
-                        <h4 class="col-12 text-center">Tambah Pengikut - SPPD ( Nomor Surat - {{ $sppd->no_surat }} )</h4>
-                        <div class="col-12">
-                            <hr>
-                        </div>
-                        <?php $no = 1; ?>
-                        <div class="col-12">
-                            @foreach ($sppduser as $sppd_data2)
-                                @foreach ($sppduserpegawai as $sppd_data)
-                                    @if ($sppd_data->id == $sppd_data2->users_id)
-                                    <div>{{ $no++ }} . {{ $sppd_data->nama }} / NIP. {{ $sppd_data->nip }}
-                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#Modal{{ $sppd_data->id }}">
-                                            Hapus
-                                        </button>
-                                        <!-- Modal -->
-                                        <div class="modal fade" id="Modal{{ $sppd_data->id }}" tabindex="-1" role="dialog" aria-labelledby="Hapus{{ $sppd_data->id }}" aria-hidden="true">
-                                            <div class="modal-dialog" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="Hapus{{ $sppd_data->id }}">Anda yakin untuk menghapus ?</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <h6>Nama : {{ $sppd_data->nama }} </h6>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                        <form action="{{ Route('SPPD') }}/{{ $sppd_data2->sppd_id }}/{{ $sppd_data->id }}/delete" method="post">
-                                                            @method('delete')
-                                                            @csrf   
-                                                            <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-                                                        </form>
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div> 
-                                    <hr>
-                                    @endif
-                                @endforeach
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <?php $no = 1; ?>
-                    @foreach ($sppd->user as $sppd_data)
-                        <?php $data[$no++] = $sppd_data->nip; ?>
-                    @endforeach
-                    <?php $data = collect($data); ?>
-                    <div class="row justify-content-start">
-                        <form action="{{ Route('SPPD') }}/{{ $sppd->id }}/add" method="post" class="col-12">
-                            @csrf
-                            <div class="col-12 form-group" style="font-size: 20px; opacity:0.8;">
-                                <select id="username" name="nip"
-                                    class="form-control form-control-user @error('nip') is-invalid @enderror"
-                                    required autocomplete="nip" autofocus placeholder="Ketik Nama atau NIP">
-                                    <option disabled selected>- Ketik Nama atau NIP -</option>
-                                    @foreach ($all_user as $this_user)
-                                        <option value="{{ $this_user->nip }}" 
-                                            <?php 
-                                            foreach ($data as $dataa) { ?>
-                                                @if (
-                                                    $this_user->nip == $dataa
-                                                ) disabled aria-disabled="false"
-                                                @endif
-                                            <?php } ?>
-                                            required >
-                                        {{ $this_user->nip }} - {{ $this_user->nama }} 
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <script type="text/javascript">
-                                    $(document).ready(function() {
-                                        $('#username').select2();
-                                    });
-                                </script>
-                            </div>
-                            <div class="row justify-content-center">
-                                <button type="submit" class="btn btn-primary d-flex justify-content-center">Tambah</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Tambah Pengikut SPPD</h1>
+        <p class="page-subtitle">Nomor Surat - {{ $sppd->no_surat }}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ route('SPPD') }}/{{ $sppd->id }}/SPPD" class="btn btn--outline">
+            <x-icon name="arrow-left" :size="16" /> Kembali ke SPPD
+        </a>
     </div>
 </div>
-@endsection
 
-@section('script-down')
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
+@include('layouts.sppdnav')
+
+@php
+    $existing = collect();
+    foreach ($sppd->user as $sppd_data) {
+        $existing->push($sppd_data->nip);
+    }
+@endphp
+
+<div class="card card--pad-lg" style="margin-bottom:16px">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title">Daftar Pengikut Saat Ini</h2>
+            <p class="card-note">Pegawai yang ikut dalam perjalanan dinas</p>
+        </div>
+    </div>
+    @if ($sppduser->count() > 0)
+        <div style="display:flex; flex-direction:column; gap:10px">
+            @php $no = 1; @endphp
+            @foreach ($sppduser as $sppd_data2)
+                @foreach ($sppduserpegawai as $sppd_data)
+                    @if ($sppd_data->id == $sppd_data2->users_id)
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border); border-radius:10px">
+                            <div>
+                                <strong>{{ $no++ }}. {{ $sppd_data->nama }}</strong>
+                                <div class="muted">NIP. {{ $sppd_data->nip }}</div>
+                            </div>
+                            <form action="{{ route('SPPD') }}/{{ $sppd_data2->sppd_id }}/{{ $sppd_data->id }}/delete" method="post" data-confirm="Hapus {{ $sppd_data->nama }} dari pengikut?">
+                                @method('delete')
+                                @csrf
+                                <button type="submit" class="btn btn--danger" style="height:32px; padding:0 12px">
+                                    <x-icon name="trash-2" :size="14" /> Hapus
+                                </button>
+                            </form>
+                        </div>
+                    @endif
+                @endforeach
+            @endforeach
+        </div>
+    @else
+        <p class="muted">Belum ada pengikut ditambahkan</p>
+    @endif
+</div>
+
+<div class="card card--pad-lg">
+    <div class="card-head">
+        <div>
+            <h2 class="card-title">Tambah Pengikut</h2>
+            <p class="card-note">Cari berdasarkan nama atau NIP</p>
+        </div>
+    </div>
+    <form action="{{ route('SPPD') }}/{{ $sppd->id }}/add" method="post" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
+        @csrf
+        <div class="form-row" style="flex:1; min-width:280px">
+            <label class="form-label">Pilih Pegawai</label>
+            <select name="nip" class="select" required>
+                <option disabled selected>Pilih pegawai...</option>
+                @foreach ($all_user as $this_user)
+                    <option value="{{ $this_user->nip }}" @if ($existing->contains($this_user->nip)) disabled @endif>
+                        {{ $this_user->nip }} - {{ $this_user->nama }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="btn btn--primary" style="height:40px">
+            <x-icon name="user-plus" :size="16" /> Tambah
+        </button>
+    </form>
+</div>
 @endsection

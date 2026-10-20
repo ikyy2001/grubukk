@@ -1,44 +1,33 @@
-
 @extends('layouts.app')
 
-@section('title',  request()->path() )
+@section('title', request()->path())
+
 @section('content')
-<div class="container-fluid" style="font-size: 20px">
-    @include('layouts.breadcrump')
-    <div class="row row-cols-10 shadow rounded-lg p-3 justify-content-center m-0" style="background-color: rgb(0, 183, 255)">
-        @if ($user->role_check(['Admin']))
-        <div class="col-3">
-            {{-- Navigasi Menu --}}
-            @include('layouts.nav')
-        </div>
-        <div class="col-9">
-            {{-- Tombol Petunjuk --}}
-            @include('layouts.help')
-            
-            {{-- Bagian Isi --}}
-            <div class="tab-content bg-light rounded-lg shadow p-4" id="v-pills-tabContent">
-                <h3 class="text-center">Edit Kegiatan</h3>
-                <br>
-                <form action="{{ Route('Kegiatan') }}/{{ $kegiatan->id }}/edit" method="post" class="form-group row d-flex align-items-center">
-                    @method('patch')
-                    @csrf
-                    <label for="Role" class="col-sm-3 col-form-label">Edit Kegiatan</label>
-                    <div class="col-sm-1 text-right">:</div>
-                    <div class="col-sm-8">
-                        <textarea class="form-control justify-content-center" id="Kegiatan" placeholder="Kegiatan" name="Kegiatan">{{ $kegiatan->kegiatan }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-block btn-primary btn-sm mt-3" data-toggle="modal" data-target="#Modal{{ $kegiatan->id }}">Simpan</button>
-                </form>
-            </div>
-        </div>
-        @else
-        @include('layouts.akses')
-        @endif
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">{{ $user->role ?? '' }}</div>
+      <h1 class="page-title">Edit Kegiatan</h1>
+      <p class="page-sub muted">Ubah data kegiatan.</p>
     </div>
-</div>
+    <div class="page-actions">
+      <a href="{{ route('Kegiatan') }}" class="btn btn--outline">Kembali</a>
+    </div>
+  </div>
 
-@endsection
-
-@section('script-down')
-<script src="{{ asset('js/bootstrap.min.js')}}"></script>
+  <section class="card card--pad-lg" style="max-width: 800px">
+    <form action="{{ route('Kegiatan') }}/{{ $kegiatan->id }}/edit" method="post">
+      @method('patch')
+      @csrf
+      <div class="form-grid form-grid--full">
+        <div class="form-field">
+          <label for="Kegiatan" class="form-label">Kegiatan</label>
+          <textarea class="textarea" id="Kegiatan" name="Kegiatan" placeholder="Ketik kegiatan...">{{ $kegiatan->kegiatan }}</textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <a href="{{ route('Kegiatan') }}" class="btn btn--outline">Batal</a>
+        <button type="submit" class="btn btn--primary">Simpan</button>
+      </div>
+    </form>
+  </section>
 @endsection
