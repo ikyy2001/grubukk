@@ -3,9 +3,9 @@
 namespace App\Models\Auth;
 
 use App\Models\Eselon;
-use App\Models\jabatan;
+use App\Models\Jabatan;
 use App\Models\Golongan;
-use App\Models\SPPD;
+use App\Models\Sppd;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\Notifiable;
