@@ -60,6 +60,19 @@ class UsersController extends Controller
         $series = $months->map(fn ($m) => (int) ($perMonth[$m->format('Y-m')] ?? 0))->values();
         $spark = $series->slice(-8)->values();
 
+        // Seri pembanding: 8 bulan yang sama pada tahun lalu.
+        $monthsLastYear = $months->map(fn ($m) => $m->copy()->subYear());
+        $perMonthLastYear = (clone $base())
+            ->selectRaw("DATE_FORMAT(tgl_pergi, '%Y-%m') AS ym, COUNT(*) AS c")
+            ->whereBetween('tgl_pergi', [
+                $monthsLastYear->first()->copy()->startOfMonth(),
+                $monthsLastYear->last()->copy()->endOfMonth(),
+            ])
+            ->groupBy('ym')
+            ->pluck('c', 'ym');
+
+        $seriesLastYear = $monthsLastYear->map(fn ($m) => (int) ($perMonthLastYear[$m->format('Y-m')] ?? 0))->values();
+
         $thisYearTotal = (clone $base())->whereYear('tgl_pergi', $now->year)->count();
         $lastYearTotal = (clone $base())->whereYear('tgl_pergi', $now->year - 1)->count();
 
@@ -80,21 +93,24 @@ class UsersController extends Controller
             ->get();
 
         $bulanLabels = $months->map(fn ($m) => $m->isoFormat('MMM'))->values();
+        $periodeLabel = $months->first()->isoFormat('MMM YYYY') . ' – ' . $months->last()->isoFormat('MMM YYYY');
 
         return view('dashboard', [
-            'user'          => $user,
-            'totalSppd'     => $totalSppd,
-            'bulanIni'      => $bulanIni,
-            'deltaPct'      => $deltaPct,
-            'berjalan'      => $berjalan,
-            'spark'         => $spark,
-            'series'        => $series,
-            'bulanLabels'   => $bulanLabels,
-            'thisYearTotal' => $thisYearTotal,
-            'lastYearTotal' => $lastYearTotal,
-            'pegawaiAktif'  => $pegawaiAktif,
-            'roleCounts'    => $roleCounts,
-            'recent'        => $recent,
+            'user'           => $user,
+            'totalSppd'      => $totalSppd,
+            'bulanIni'       => $bulanIni,
+            'deltaPct'       => $deltaPct,
+            'berjalan'       => $berjalan,
+            'spark'          => $spark,
+            'series'         => $series,
+            'seriesLastYear' => $seriesLastYear,
+            'bulanLabels'    => $bulanLabels,
+            'periodeLabel'   => $periodeLabel,
+            'thisYearTotal'  => $thisYearTotal,
+            'lastYearTotal'  => $lastYearTotal,
+            'pegawaiAktif'   => $pegawaiAktif,
+            'roleCounts'     => $roleCounts,
+            'recent'         => $recent,
         ]);
     }
     // Pegawai & show Pegawai

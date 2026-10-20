@@ -57,9 +57,9 @@
       <div class="card-head">
         <div>
           <h2 class="card-title">SPPD per Bulan</h2>
-          <p class="card-note muted">Perbandingan tahun ini vs tahun lalu</p>
+          <p class="card-note muted">Perbandingan 8 bulan terakhir vs periode yang sama tahun lalu</p>
         </div>
-        <div class="tag">{{ now()->isoFormat('YYYY') }}</div>
+        <div class="tag">{{ $periodeLabel }}</div>
       </div>
 
       <div class="chart-stat-row">
@@ -74,28 +74,37 @@
       </div>
 
       <div class="chart-legend">
-        <span class="legend-item"><span class="legend-dash"></span> Tahun Ini</span>
-        <span class="legend-item"><span class="legend-dash legend-dash--secondary"></span> Tahun Lalu</span>
+        <span class="legend-item"><span class="legend-dash"></span> 8 Bulan Terakhir</span>
+        <span class="legend-item"><span class="legend-dash legend-dash--secondary"></span> Tahun Lalu (periode sama)</span>
       </div>
 
       @php
-        // Build minimal chart path (primary series = this year; secondary = last year — approximate per same month sequence)
+        // Grafik: 8 bulan terakhir (garis solid) vs periode yang sama tahun lalu (garis putus-putus).
         $w=1200; $h=220; $pad=24;
-        $s1 = $series->toArray();
-        $s2 = collect(range(7,0))->map(fn($i)=> (clone $base ?? null)? null : 0); // not needed; reuse last year by slicing? simpler: show current year only line for now
-        $allv = collect($s1);
-        $vmin = $allv->min(); $vmax = $allv->max();
+        $s1 = collect($series)->map(fn ($v) => (float) $v)->values();
+        $s2 = collect($seriesLastYear ?? [])->map(fn ($v) => (float) $v)->values();
+        $allv = $s1->concat($s2);
+        $vmin = 0;
+        $vmax = max((float) ($allv->max() ?? 0), 1);
         $range = ($vmax - $vmin) ?: 1;
-        $n = $allv->count();
+        $n = max($s1->count(), $s2->count());
         $stepX = $n>1 ? ($w-$pad*2)/($n-1) : 0;
-        $coords1 = [];
-        foreach ($s1 as $i => $v) {
-          $x = $pad + $i*$stepX;
-          $y = $h - $pad - (($v - $vmin)/$range)*($h - $pad*2);
-          $coords1[] = round($x,2).' '.round($y,2);
-        }
-        $line1 = 'M'.implode(' L',$coords1);
-        $area1 = $line1.' L'.($pad+($n-1)*$stepX).' '.$h.' L'.$pad.' '.$h.' Z';
+
+        $toCoords = function ($s) use ($pad, $h, $stepX, $vmin, $range) {
+            return $s->values()->map(function ($v, $i) use ($pad, $h, $stepX, $vmin, $range) {
+                $x = $pad + $i*$stepX;
+                $y = $h - $pad - (($v - $vmin)/$range)*($h - $pad*2);
+                return round($x,2).' '.round($y,2);
+            })->all();
+        };
+
+        $coords1 = $toCoords($s1);
+        $coords2 = $toCoords($s2);
+        $line1 = $coords1 ? 'M'.implode(' L',$coords1) : '';
+        $line2 = $coords2 ? 'M'.implode(' L',$coords2) : '';
+        $area1 = $coords1
+            ? $line1.' L'.round($pad+($n-1)*$stepX,2).' '.$h.' L'.$pad.' '.$h.' Z'
+            : '';
       @endphp
       <svg class="chart-svg" viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <defs>
@@ -104,8 +113,15 @@
             <stop offset="1" stop-color="var(--primary)" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <path d="{{ $area1 }}" fill="url(#c1)"/>
-        <path d="{{ $line1 }}" fill="none" stroke="var(--primary)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+        @if ($area1)
+          <path d="{{ $area1 }}" fill="url(#c1)"/>
+        @endif
+        @if ($line2)
+          <path d="{{ $line2 }}" fill="none" stroke="var(--chart-line-secondary)" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" stroke-linejoin="round"/>
+        @endif
+        @if ($line1)
+          <path d="{{ $line1 }}" fill="none" stroke="var(--primary)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+        @endif
       </svg>
       <div class="chart-xlabels">
         @foreach ($bulanLabels as $lbl)

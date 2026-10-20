@@ -52,6 +52,10 @@ class Sppd extends Model
     {
         return $this->hasMany(Sppd_user::class,'sppd_id');
     }
+    public function reimbursement()
+    {
+        return $this->hasOne(SppdReimbursement::class, 'sppd_id');
+    }
     public static function getSppd($id)
     {
         // Muat satu SPPD lengkap dengan relasinya (bukan seluruh tabel).

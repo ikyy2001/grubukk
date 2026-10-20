@@ -53,8 +53,15 @@ class SPPDController extends Controller
             'TempatBerangkat'   => 'required',
             'TempatTujuan'      => 'required',
             'Tanggal_Berangkat' => 'required|date',
-            'Tanggal_Kembali'   => 'required|date|after_or_equal:Tanggal_Berangkat'
+            'Tanggal_Kembali'   => 'required|date|after_or_equal:Tanggal_Berangkat',
+            'file_undangan'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'uang_muka'         => 'nullable|numeric|min:0'
         ]);
+
+        $filePath = null;
+        if ($request->hasFile('file_undangan')) {
+            $filePath = $request->file('file_undangan')->store('dokumen_sppd', 'public');
+        }
 
         $pegawaiId = $request->Pegawai_id ?? Auth::id();
         $assignedUser = User::find($pegawaiId) ?? User::find(Auth::id());
@@ -67,11 +74,14 @@ class SPPDController extends Controller
 
         $surat = Nosurat::getDataSurat();
         $sppd = Sppd::create([
-            'no_surat'      => $surat->no_surat,
-            'tahun_surat'   => $surat->tahun_surat,
-            'tgl_pergi'     => $request->Tanggal_Berangkat,
-            'tgl_kembali'   => $request->Tanggal_Kembali,
-            'acara'         => $request->Acara
+            'no_surat'          => $surat->no_surat,
+            'tahun_surat'       => $surat->tahun_surat,
+            'tgl_pergi'         => $request->Tanggal_Berangkat,
+            'tgl_kembali'       => $request->Tanggal_Kembali,
+            'acara'             => $request->Acara,
+            'status'            => 'pending_atasan',
+            'file_undangan'     => $filePath,
+            'uang_muka'         => $request->uang_muka ?? 0
         ]);
 
         // Attach pegawai yang ditugaskan
@@ -119,7 +129,7 @@ class SPPDController extends Controller
             ]);
         }
 
-        session()->flash('Success', 'Berhasil Menambah SPPD');
+        session()->flash('Success', 'Pengajuan SPPD berhasil dibuat dan menunggu persetujuan Atasan.');
         return Redirect(Route('SPPD'));
     }
     public function updatenosurat($surat)

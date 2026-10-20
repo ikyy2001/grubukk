@@ -19,6 +19,8 @@
   --pos-text: #15803D;  --pos-bg: #ECFDF5;  --pos-border: #BBF7D0;  --pos-line: #16A34A;
   --neg-text: #9F1239;  --neg-bg: #FFF1F2;  --neg-border: #FECDD3;  --neg-line: #BE123C;
 
+  --chart-line-secondary: #D4D4D8;
+
   --radius-card: 20px;
   --radius-nav: 10px;
   --radius-pill: 9999px;
@@ -38,6 +40,7 @@
   --nav-active: #27272A;
   --pos-bg: #052E16; --pos-border: #14532D; --pos-text: #4ADE80;
   --neg-bg: #4C0519; --neg-border: #881337; --neg-text: #FDA4AF;
+  --chart-line-secondary: #52525B;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,6 +53,7 @@
     --nav-active: #27272A;
     --pos-bg: #052E16; --pos-border: #14532D; --pos-text: #4ADE80;
     --neg-bg: #4C0519; --neg-border: #881337; --neg-text: #FDA4AF;
+    --chart-line-secondary: #52525B;
   }
 }
 
@@ -492,11 +496,7 @@ svg { display: block; flex: none; }
 .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 4px; }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
 .legend-dash { width: 16px; height: 0; border-top: 2px solid var(--primary); }
-.legend-dash--secondary { border-top: 2px dashed #D4D4D8; }
-:root[data-theme="dark"] .legend-dash--secondary { border-top-color: #52525B; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .legend-dash--secondary { border-top-color: #52525B; }
-}
+.legend-dash--secondary { border-top: 2px dashed var(--chart-line-secondary); }
 
 .chart-svg { width: 100%; height: auto; display: block; margin-top: 8px; }
 .chart-xlabels {

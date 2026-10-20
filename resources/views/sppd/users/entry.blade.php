@@ -15,7 +15,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('EntrySPPD') }}">
+<form method="POST" action="{{ route('EntrySPPD') }}" enctype="multipart/form-data">
     @csrf
     <div class="card card--pad-lg" style="margin-bottom:16px">
         <div class="card-head">
@@ -112,9 +112,29 @@
                 @enderror
             </div>
         </div>
+
+        <div class="card-head" style="margin-top:24px">
+            <div>
+                <h2 class="card-title">Dokumen Pendukung & Estimasi Biaya</h2>
+                <p class="card-note">Unggah dokumen resmi (Surat Undangan / Kerangka Acuan TOR) dan estimasi panjar/uang muka</p>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label">Dokumen Pendukung (TOR / Undangan)</label>
+                <input type="file" class="input" name="file_undangan" accept=".pdf,.jpg,.jpeg,.png">
+                <span class="muted" style="font-size:12px">Format didukung: PDF, JPG, PNG (Maks. 5 MB)</span>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Estimasi Uang Muka / Panjar (Rp)</label>
+                <input type="number" class="input" name="uang_muka" placeholder="Contoh: 1500000" min="0" value="{{ old('uang_muka', 0) }}">
+                <span class="muted" style="font-size:12px">Akan diverifikasi dan disetujui bagian Keuangan</span>
+            </div>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; margin-top:20px">
             <button type="submit" class="btn btn--primary">
-                <x-icon name="file-plus" :size="16" /> Buat SPPD
+                <x-icon name="file-plus" :size="16" /> Ajukan SPPD
             </button>
         </div>
     </div>

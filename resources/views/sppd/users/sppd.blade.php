@@ -40,7 +40,8 @@
                     <th>Nomor Surat</th>
                     <th>Acara</th>
                     <th>Yang Diperintah</th>
-                    <th style="width: 200px">Aksi</th>
+                    <th>Status</th>
+                    <th style="width: 220px">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,8 +49,13 @@
                 @forelse ($sppd as $sppd_data)
                     <tr>
                         <td>{{ $no++ }}</td>
-                        <td class="tabular">{{ $sppd_data->no_surat }}</td>
-                        <td>{{ Str::limit($sppd_data->acara, 60, '...') }}</td>
+                        <td class="tabular">{{ $sppd_data->no_surat }} / {{ $sppd_data->tahun_surat }}</td>
+                        <td>
+                            <div><strong>{{ Str::limit($sppd_data->acara, 50, '...') }}</strong></div>
+                            @if ($sppd_data->catatan_revisi && in_array($sppd_data->status, ['rejected', 'draft']))
+                                <div style="color:var(--neg-text); font-size:12px; margin-top:2px">Catatan: {{ $sppd_data->catatan_revisi }}</div>
+                            @endif
+                        </td>
                         <td>
                             @php $no1 = 1; @endphp
                             @foreach ($sppd_data->user as $us)
@@ -57,15 +63,35 @@
                             @endforeach
                         </td>
                         <td>
-                            <div style="display:flex; gap:8px; flex-wrap:wrap">
-                                <a href="{{ route('SPPD') }}/{{ $sppd_data->id }}/SPPD" class="btn btn--primary" style="height:32px; padding:0 12px">
-                                    <x-icon name="eye" :size="14" /> Lihat
+                            @if ($sppd_data->status == 'pending_atasan')
+                                <span class="tag" style="background:rgba(234, 179, 8, 0.15); color:#ca8a04; border:1px solid rgba(234, 179, 8, 0.3)">Menunggu Atasan</span>
+                            @elseif ($sppd_data->status == 'pending_keuangan')
+                                <span class="tag" style="background:rgba(59, 130, 246, 0.15); color:#2563eb; border:1px solid rgba(59, 130, 246, 0.3)">Menunggu Keuangan</span>
+                            @elseif ($sppd_data->status == 'approved')
+                                <span class="tag" style="background:rgba(34, 197, 94, 0.15); color:#16a34a; border:1px solid rgba(34, 197, 94, 0.3)">Disetujui</span>
+                            @elseif ($sppd_data->status == 'rejected')
+                                <span class="tag" style="background:rgba(239, 68, 68, 0.15); color:#dc2626; border:1px solid rgba(239, 68, 68, 0.3)">Ditolak</span>
+                            @elseif ($sppd_data->status == 'completed')
+                                <span class="tag" style="background:rgba(99, 102, 241, 0.15); color:#4f46e5; border:1px solid rgba(99, 102, 241, 0.3)">Selesai</span>
+                            @else
+                                <span class="tag">{{ $sppd_data->status }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap">
+                                <a href="{{ route('SPPD') }}/{{ $sppd_data->id }}/SPPD" class="btn btn--outline" style="height:30px; padding:0 10px; font-size:12px">
+                                    <x-icon name="eye" :size="13" /> Detail
                                 </a>
+                                @if(in_array($sppd_data->status, ['approved', 'completed']))
+                                <a href="{{ url('Reimbursement/'.$sppd_data->id) }}" class="btn btn--primary" style="height:30px; padding:0 10px; font-size:12px">
+                                    <x-icon name="dollar-sign" :size="13" /> Biaya Riil
+                                </a>
+                                @endif
                                 <form action="{{ route('SPPD') }}/{{ $sppd_data->id }}/delete" method="post" data-confirm="Hapus SPPD &quot;{{ Str::limit($sppd_data->acara, 40) }}&quot;?">
                                     @method('delete')
                                     @csrf
-                                    <button type="submit" class="btn btn--danger" style="height:32px; padding:0 12px">
-                                        <x-icon name="trash-2" :size="14" /> Hapus
+                                    <button type="submit" class="btn btn--danger" style="height:30px; padding:0 8px; font-size:12px">
+                                        <x-icon name="trash-2" :size="13" />
                                     </button>
                                 </form>
                             </div>

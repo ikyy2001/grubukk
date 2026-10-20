@@ -46,6 +46,7 @@
               <th>No Surat</th>
               <th>Acara</th>
               <th>Yang diperintah</th>
+              <th>Status</th>
               <th class="row-actions">Aksi</th>
             </tr>
           </thead>
@@ -54,7 +55,7 @@
             @foreach ($sppd as $item)
               <tr>
                 <td class="num">{{ $no++ }}</td>
-                <td>{{ $item->no_surat }}</td>
+                <td>{{ $item->no_surat }} / {{ $item->tahun_surat }}</td>
                 <td>{{ $item->acara }}</td>
                 <td>
                   @php $no1 = 1; @endphp
@@ -62,8 +63,23 @@
                     <div>{{ $no1++ }}. {{ \Illuminate\Support\Str::limit($usr->nama, 30, '...') }}</div>
                   @endforeach
                 </td>
+                <td>
+                  @if ($item->status == 'pending_atasan')
+                      <span class="tag" style="background:rgba(234, 179, 8, 0.15); color:#ca8a04">Menunggu Atasan</span>
+                  @elseif ($item->status == 'pending_keuangan')
+                      <span class="tag" style="background:rgba(59, 130, 246, 0.15); color:#2563eb">Menunggu Keuangan</span>
+                  @elseif ($item->status == 'approved')
+                      <span class="tag" style="background:rgba(34, 197, 94, 0.15); color:#16a34a">Disetujui</span>
+                  @elseif ($item->status == 'rejected')
+                      <span class="tag" style="background:rgba(239, 68, 68, 0.15); color:#dc2626">Ditolak</span>
+                  @elseif ($item->status == 'completed')
+                      <span class="tag" style="background:rgba(99, 102, 241, 0.15); color:#4f46e5">Selesai</span>
+                  @else
+                      <span class="tag">{{ $item->status }}</span>
+                  @endif
+                </td>
                 <td class="row-actions">
-                  <a href="{{ route('SPPD') }}/{{ $item->id }}/SPPD" class="btn btn--primary btn--sm">SPPD</a>
+                  <a href="{{ route('SPPD') }}/{{ $item->id }}/SPPD" class="btn btn--primary btn--sm">Detail</a>
                 </td>
               </tr>
             @endforeach

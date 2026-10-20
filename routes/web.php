@@ -112,6 +112,20 @@ Route::prefix('SPPD')->middleware('auth')->group(function () {
     Route::delete('{sppd_id}/{users_id}/delete', 'SPPDController@removefollower');
 });
 
+Route::prefix('Approval')->middleware('auth')->group(function () {
+    Route::get('/', 'ApprovalController@index')->name('Approval');
+    Route::post('/{id}/atasan', 'ApprovalController@approveAtasan')->name('Approval.atasan');
+    Route::post('/{id}/keuangan', 'ApprovalController@approveKeuangan')->name('Approval.keuangan');
+    Route::post('/{id}/reject', 'ApprovalController@reject')->name('Approval.reject');
+});
+
+Route::prefix('Reimbursement')->middleware('auth')->group(function () {
+    Route::get('/{id}', 'ReimbursementController@index')->name('Reimbursement');
+    Route::post('/{id}/item', 'ReimbursementController@addItem')->name('Reimbursement.addItem');
+    Route::delete('/item/{itemId}', 'ReimbursementController@deleteItem')->name('Reimbursement.deleteItem');
+    Route::post('/{id}/verify', 'ReimbursementController@verify')->name('Reimbursement.verify');
+});
+
 Route::prefix('Cetak')->middleware('auth')->group(function () {
     Route::get('/SPT', 'CetakController@index')->name('CetakSPT');
     Route::get('/SPPD', 'CetakController@index')->name('CetakSPPD');

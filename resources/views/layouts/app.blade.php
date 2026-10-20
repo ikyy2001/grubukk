@@ -71,7 +71,13 @@
       <x-icon name="plus" /> Buat SPT / SPPD
     </a>
 
-    @if (\App\Models\Auth\User::role_check(['Staff', 'Kepala Bidang', 'Kepala Seksi']))
+    @if (\App\Models\Auth\User::role_check(['Kepala Bidang', 'Keuangan', 'Admin']))
+      <a href="{{ route('Approval') }}" class="nav-row {{ request()->is('Approval*') ? 'active' : '' }}">
+        <x-icon name="check-circle" /> Persetujuan SPPD
+      </a>
+    @endif
+
+    @if (\App\Models\Auth\User::role_check(['Staff', 'Kepala Bidang', 'Kepala Seksi', 'Keuangan']))
       <a href="{{ route('Pegawai') }}" class="nav-row {{ request()->is('Pegawai*') ? 'active' : '' }}">
         <x-icon name="users" /> Pegawai
       </a>
