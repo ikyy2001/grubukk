@@ -121,6 +121,7 @@ Route::prefix('Approval')->middleware('auth')->group(function () {
 
 Route::prefix('Reimbursement')->middleware('auth')->group(function () {
     Route::get('/{id}', 'ReimbursementController@index')->name('Reimbursement');
+    Route::post('/{id}/uang-muka', 'ReimbursementController@setUangMuka')->name('Reimbursement.setUangMuka');
     Route::post('/{id}/item', 'ReimbursementController@addItem')->name('Reimbursement.addItem');
     Route::delete('/item/{itemId}', 'ReimbursementController@deleteItem')->name('Reimbursement.deleteItem');
     Route::post('/{id}/verify', 'ReimbursementController@verify')->name('Reimbursement.verify');

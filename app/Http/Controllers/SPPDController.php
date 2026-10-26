@@ -26,10 +26,17 @@ class SPPDController extends Controller
     {
         $user = User::getUser();
         $q = $user->sppd()->with(['user:id,nama,nip,role', 'tempat'])->orderBy('id', 'desc');
-        if ($request->search) {
-            $q->where(function ($qq) use ($request) {
-                $qq->where('no_surat', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('acara', 'LIKE', '%' . $request->search . '%');
+        $search = trim((string) $request->query('search', ''));
+        if ($search !== '') {
+            // Nomor surat ditampilkan sebagai "no_surat / tahun_surat", jadi
+            // pencarian juga harus mengenali format tersebut (dengan/tanpa spasi).
+            $normalizedSearch = preg_replace('/\s*\/\s*/', '/', $search);
+            $q->where(function ($qq) use ($search, $normalizedSearch) {
+                $term = '%' . $search . '%';
+                $qq->where('no_surat', 'LIKE', $term)
+                    ->orWhere('acara', 'LIKE', $term)
+                    ->orWhere('tahun_surat', 'LIKE', $term)
+                    ->orWhereRaw("CONCAT(no_surat, '/', tahun_surat) LIKE ?", ['%' . $normalizedSearch . '%']);
             });
         }
         $sppd = $q->paginate(10)->withQueryString();

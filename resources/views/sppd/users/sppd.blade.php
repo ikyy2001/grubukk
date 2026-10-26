@@ -25,15 +25,30 @@
             <h2 class="card-title">Daftar SPPD</h2>
             <p class="card-note">Cari berdasarkan nomor surat atau acara</p>
         </div>
-        <form action="{{ route('SPPD') }}" method="GET" class="search-pill" style="min-width: 280px">
+        <form action="{{ route('SPPD') }}" method="GET" class="search-pill search-pill--action" role="search">
             <x-icon name="search" :size="16" />
-            <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari nomor surat atau acara…">
-            <button type="submit" class="btn btn--primary" style="height: 32px; padding: 0 14px">Cari</button>
+            <input type="search" name="search" value="{{ request('search') }}" placeholder="Cari nomor surat atau acara…" aria-label="Cari nomor surat atau acara">
+            @if (request()->filled('search'))
+                <a href="{{ route('SPPD') }}" class="search-pill__clear" title="Hapus pencarian" aria-label="Hapus pencarian">
+                    <x-icon name="x" :size="14" />
+                </a>
+            @endif
+            <button type="submit" class="btn btn--primary search-pill__submit">Cari</button>
         </form>
     </div>
 
+    @if (request()->filled('search'))
+        <div class="search-result">
+            <span>
+                Menampilkan <strong>{{ $sppd->total() }}</strong> hasil untuk
+                <strong>&ldquo;{{ request('search') }}&rdquo;</strong>
+            </span>
+            <a href="{{ route('SPPD') }}">Reset pencarian</a>
+        </div>
+    @endif
+
     <div class="table-wrap">
-        <table class="table">
+        <table class="table table--sppd">
             <thead>
                 <tr>
                     <th style="width: 60px">No</th>
@@ -41,7 +56,7 @@
                     <th>Acara</th>
                     <th>Yang Diperintah</th>
                     <th>Status</th>
-                    <th style="width: 220px">Aksi</th>
+                    <th style="width: 260px">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -78,19 +93,19 @@
                             @endif
                         </td>
                         <td>
-                            <div style="display:flex; gap:6px; flex-wrap:wrap">
-                                <a href="{{ route('SPPD') }}/{{ $sppd_data->id }}/SPPD" class="btn btn--outline" style="height:30px; padding:0 10px; font-size:12px">
+                            <div class="table-actions">
+                                <a href="{{ route('SPPD') }}/{{ $sppd_data->id }}/SPPD" class="btn btn--outline" style="height:30px; padding:0 10px; font-size:12px" title="Lihat detail SPPD">
                                     <x-icon name="eye" :size="13" /> Detail
                                 </a>
                                 @if(in_array($sppd_data->status, ['approved', 'completed']))
-                                <a href="{{ url('Reimbursement/'.$sppd_data->id) }}" class="btn btn--primary" style="height:30px; padding:0 10px; font-size:12px">
+                                <a href="{{ url('Reimbursement/'.$sppd_data->id) }}" class="btn btn--primary" style="height:30px; padding:0 10px; font-size:12px" title="Laporkan biaya riil">
                                     <x-icon name="dollar-sign" :size="13" /> Biaya Riil
                                 </a>
                                 @endif
                                 <form action="{{ route('SPPD') }}/{{ $sppd_data->id }}/delete" method="post" data-confirm="Hapus SPPD &quot;{{ Str::limit($sppd_data->acara, 40) }}&quot;?">
                                     @method('delete')
                                     @csrf
-                                    <button type="submit" class="btn btn--danger" style="height:30px; padding:0 8px; font-size:12px">
+                                    <button type="submit" class="btn btn--danger" style="height:30px; padding:0 8px; font-size:12px" title="Hapus SPPD" aria-label="Hapus SPPD {{ Str::limit($sppd_data->acara, 40) }}">
                                         <x-icon name="trash-2" :size="13" />
                                     </button>
                                 </form>
@@ -99,7 +114,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="muted" style="text-align:center; padding: 40px 16px">Belum ada SPPD</td>
+                        <td colspan="6" class="muted" style="text-align:center; padding: 40px 16px">
+                            @if (request()->filled('search'))
+                                Tidak ada SPPD yang cocok dengan pencarian &ldquo;{{ request('search') }}&rdquo;.
+                            @else
+                                Belum ada SPPD
+                            @endif
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
