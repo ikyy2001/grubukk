@@ -14,6 +14,9 @@ class Nosurat extends Model
     public static function getDataSurat()
     {
         $surat = Nosurat::first();
+        if (!$surat) {
+            $surat = Nosurat::create(['no_surat' => 1, 'tahun_surat' => date('Y')]);
+        }
         return $surat;
     }
 }

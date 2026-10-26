@@ -69,7 +69,7 @@
                         @if ($no == 32)
                             <option disabled>========== Luar Daerah ==========</option>
                         @endif
-                        <option value="{{ $no }}" @if ($tempat == "Surabaya") selected @endif>{{ $tempat }}</option>
+                        <option value="{{ $tempat }}" @if ($tempat == "Surabaya") selected @endif>{{ $tempat }}</option>
                         @php $no++; @endphp
                     @endforeach
                 </select>
@@ -84,7 +84,7 @@
                         @if ($no == 32)
                             <option disabled>========== Luar Daerah ==========</option>
                         @endif
-                        <option value="{{ $no }}">{{ $tempat }}</option>
+                        <option value="{{ $tempat }}">{{ $tempat }}</option>
                         @php $no++; @endphp
                     @endforeach
                 </select>

@@ -162,8 +162,8 @@ class UsersController extends Controller
             'Password'  =>  'required|min:5',
             'Role'      =>  'required|numeric'
         ]);
-        // Kolom `role` bertipe enum teks; peta angka 1-4 dari form ke nilai enum.
-        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff'];
+        // Kolom `role` bertipe enum teks; peta angka 1-5 dari form ke nilai enum.
+        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff', 5 => 'Keuangan'];
         $Cek = User::where('nip', $request->NIP)->count();
 
         if ($Cek != True) {
@@ -225,7 +225,7 @@ class UsersController extends Controller
             return redirect(Route('Admin/Show'));
         } else {
             session()->flash('Failed', '(Gagal) Password dan Password Konfirmasi Tidak Sama');
-            return redirect(Route('Users/Profile/ChangePassword'));
+            return back();
         }
     }
     public function showedituser($nip)
@@ -243,7 +243,7 @@ class UsersController extends Controller
             'Nama'      => 'required',
             'NIP'       =>  'required|min:10|numeric'
         ]);
-        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff'];
+        $roleMap = [1 => 'Admin', 2 => 'Kepala Bidang', 3 => 'Kepala Seksi', 4 => 'Staff', 5 => 'Keuangan'];
         $user = $user_pegawai;
         $user->update([
             'nama'      => $request->Nama,
@@ -253,15 +253,18 @@ class UsersController extends Controller
             'role'      => $roleMap[$request->Role] ?? $user->role,
             'updated_at' => now()
         ]);
-        $user->jabatan->update([
-            'jabatan' => $request->Jabatan
-        ]);
-        $user->golongan->update([
-            'golongan' => $request->Golongan
-        ]);
-        $user->eselon->update([
-            'nama_eselon' => $request->Eselon
-        ]);
+        Jabatan::updateOrCreate(
+            ['user_id' => $user->id],
+            ['jabatan' => $request->Jabatan]
+        );
+        Golongan::updateOrCreate(
+            ['user_id' => $user->id],
+            ['golongan' => $request->Golongan]
+        );
+        Eselon::updateOrCreate(
+            ['user_id' => $user->id],
+            ['nama_eselon' => $request->Eselon]
+        );
         session()->flash('Success', '(Berhasil) Update User ' . $user_pegawai->nama);
         return redirect(Route('Admin/Show'));
     }
@@ -270,7 +273,7 @@ class UsersController extends Controller
         $user_pegawai = User::where('nip', $nip)->firstOrFail();
         // Tandai tidak aktif lalu soft-delete (kolom `role` adalah enum, jangan diisi angka).
         $user_pegawai->update(['cek' => 0]);
-        User::destroy($user_pegawai);
+        $user_pegawai->delete();
         session()->flash('Success', 'Berhasil Menghapus User');
         return Redirect(Route('Admin/Show'));
     }
@@ -326,15 +329,18 @@ class UsersController extends Controller
             'tanggal_lahir'  => $request->TglLahir,
             'updated_at' => now()
         ]);
-        $user->jabatan->update([
-            'jabatan' => $request->Jabatan
-        ]);
-        $user->golongan->update([
-            'golongan' => $request->Golongan
-        ]);
-        $user->eselon->update([
-            'nama_eselon' => $request->Eselon
-        ]);
+        Jabatan::updateOrCreate(
+            ['user_id' => $user->id],
+            ['jabatan' => $request->Jabatan]
+        );
+        Golongan::updateOrCreate(
+            ['user_id' => $user->id],
+            ['golongan' => $request->Golongan]
+        );
+        Eselon::updateOrCreate(
+            ['user_id' => $user->id],
+            ['nama_eselon' => $request->Eselon]
+        );
         session()->flash('Success', '(Berhasil) Update Profil');
         return redirect(Route('Dashboard'));
     }

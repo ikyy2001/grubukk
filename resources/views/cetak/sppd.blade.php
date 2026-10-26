@@ -58,20 +58,25 @@ $no = 1;
 
 $tabelsppd->easyCell($no++.". ", 'valign:T;'); 
 $tabelsppd->easyCell('Kuasa Pengguna Anggaran', 'colspan:2');
-$tabelsppd->easyCell('Bidang '.$bidang->nama_bidang,'colspan:2');
+$tabelsppd->easyCell('Bidang '.($bidang?->nama_bidang ?? ''),'colspan:2');
 $tabelsppd->printRow();
 // 2
 $tabelsppd->easyCell($no++.". ",'valign:T');
 $tabelsppd->easyCell('Nama Pegawai Yang Diperintahkan','colspan:2');
 $a = 0;
+$nama = '-';
+$golongan = '-';
+$jabatan = '-';
+$nama_eselon = null;
+$klutser = '';
 foreach ($sppduser as $sppd_data2) {
     foreach ($sppduserpegawai as $sppd_data) {
         if ($sppd_data->id == $sppd_data2->users_id) {
             if (++$a == 1) {
                 $nama       = $sppd_data->nama;
-                $golongan   = $sppd_data->golongan->golongan;
-                $jabatan    = $sppd_data->jabatan->jabatan; 
-                $nama_eselon     = $sppd_data->eselon->nama_eselon; 
+                $golongan   = $sppd_data->golongan?->golongan ?? '-';
+                $jabatan    = $sppd_data->jabatan?->jabatan ?? '-';
+                $nama_eselon     = $sppd_data->eselon?->nama_eselon ?? null;
                 if ($nama_eselon == "Eselon II") {
                     $klutser = "C";
                 }elseif ($nama_eselon == "Eselon III" || $nama_eselon == "PJFT Gol IV/c") {
@@ -84,7 +89,7 @@ foreach ($sppduser as $sppd_data2) {
                     $klutser = "";
                 }
             }
-            
+
         }
     }
 }
@@ -93,11 +98,11 @@ $tabelsppd->printRow();
 // 3
 $tabelsppd->easyCell($no++.". ", 'rowspan:3;valign:T');
 $tabelsppd->easyCell('a. Pangkat dan Golongan','border:0;colspan:2');
-$tabelsppd->easyCell('a. '.$golongan ?? '-','border:LR;colspan:2');
+$tabelsppd->easyCell('a. '.($golongan ?? '-'),'border:LR;colspan:2');
 $tabelsppd->printRow();
-// 4 
+// 4
 $tabelsppd->easyCell('b. Jabatan / Instansi','border:0;colspan:2');
-$tabelsppd->easyCell('b. '.$jabatan ?? '-','border:LR;colspan:2');
+$tabelsppd->easyCell('b. '.($jabatan ?? '-'),'border:LR;colspan:2');
 $tabelsppd->printRow();
 // 5
 $tabelsppd->easyCell('c. Tingkat Biaya Perjalanan Dinas','border:B;colspan:2');
@@ -213,7 +218,7 @@ foreach ($sppduser as $sppd_data2) {
                 if ($sppd_data->role == 'Admin' || $sppd_data->role == 'Staff') {
                     $role = 'Staf Pelaksana';
                 }else{
-                    $role = $sppd_data->jabatan->jabatan;
+                    $role = $sppd_data->jabatan?->jabatan ?? '-';
                 }
                 $tabelsppd->easyCell($role,'border:'.$border.';');
                 $tabelsppd->printRow();
@@ -226,26 +231,26 @@ $tabelsppd->easyCell($no++.". ", 'rowspan:5;valign:T');
 $tabelsppd->easyCell('Pembebanan Anggaran','border:0;colspan:2');
 $tabelsppd->easyCell('','border:LR;colspan:2');
 $tabelsppd->printRow();
-// 16 
+// 16
 $tabelsppd->easyCell('a. Satuan Kerja Perangkat Daerah','border:0;colspan:2');
-$tabelsppd->easyCell($sppd->bbsppd->skpd,'border:LR;colspan:2');
+$tabelsppd->easyCell($sppd->bbsppd?->skpd ?? '-','border:LR;colspan:2');
 $tabelsppd->printRow();
 // 17
 $tabelsppd->easyCell('b. Program','border:0;colspan:2');
-$tabelsppd->easyCell($sppd->bbsppd->program,'border:LR;colspan:2');
+$tabelsppd->easyCell($sppd->bbsppd?->program ?? '-','border:LR;colspan:2');
 $tabelsppd->printRow();
 // 18
 $tabelsppd->easyCell('c. Kegiatan','border:0;colspan:2');
-$tabelsppd->easyCell($sppd->bbsppd->kegiatan,'border:LR;colspan:2');
+$tabelsppd->easyCell($sppd->bbsppd?->kegiatan ?? '-','border:LR;colspan:2');
 $tabelsppd->printRow();
-// 19 
+// 19
 $tabelsppd->easyCell('d. Kode Rekening','border:B;colspan:2');
-$tabelsppd->easyCell($sppd->bbsppd->rekening,'border:LRB;colspan:2');
+$tabelsppd->easyCell($sppd->bbsppd?->rekening ?? '-','border:LRB;colspan:2');
 $tabelsppd->printRow();
 // 20
 $tabelsppd->easyCell($no++.". ", 'valign:T');
 $tabelsppd->easyCell('KETERANGAN LAIN-LAIN','border:1;colspan:2');
-$tabelsppd->easyCell($sppd->keterangan->keterangan,'border:LRB;colspan:2');
+$tabelsppd->easyCell($sppd->keterangan?->keterangan ?? '-','border:LRB;colspan:2');
 $tabelsppd->printRow();
 
 $tabelsppd->endTable(4);
@@ -253,15 +258,15 @@ $tabelsppd->endTable(4);
 $border = 0;
 $Y = $pdf->GetY();
 if ($Y >= 267) {
-    $pdf->AddPagePage();
+    $pdf->AddPage();
 }
 
 $pdf->Cell(100,5,'',$border,0,'L');
 $pdf->Cell(30,5,'Dikeluarkan di',$border,0,'L');
-$pdf->Cell(60,5,$sppd->tempat->tempat_berangkat,$border,1,'L');
+$pdf->Cell(60,5,$sppd->tempat?->tempat_berangkat ?? '-',$border,1,'L');
 $pdf->Cell(100,5,'',$border,0,'L');
 $pdf->Cell(30,5,'Pada Tanggal',$border,0,'L');
-$pdf->Cell(60,5, date('d-m-Y',strtotime($sppd->tgl_surat)),$border,1,'L');
+$pdf->Cell(60,5, date('d-m-Y',strtotime($sppd->tgl_surat ?? now())),$border,1,'L');
 $pdf->Cell(0,2,'',$border,1,'C');
 $pdf->Cell(85,5,'',$border,0,'L');
 $pdf->SetFont('Arial','B',11);
@@ -269,12 +274,12 @@ $pdf->Cell(105,5,'KUASA PENGGUNA ANGGARAN',$border,1,'C');
 $pdf->SetFont('Arial','',11);
 $pdf->Cell(0,12,'',$border,1,'C');
 $pdf->Cell(85,5,'',$border,0,'L');
-$pdf->Multicell(105,4,$sppd->kabid->nama_kabid,$border,'C');
+$pdf->Multicell(105,4,$sppd->kabid?->nama_kabid ?? '-',$border,'C');
 $pdf->Cell(85,5,'',$border,0,'L');
-$pdf->Multicell(105,4,$sppd->kabid->jabatan ?? '-',$border,'C');
+$pdf->Multicell(105,4,$sppd->kabid?->jabatan ?? '-',$border,'C');
 $pdf->Cell(85,5,'',$border,0,'L');
-$pdf->Multicell(105,4,'NIP. '.$sppd->kabid->nip ,$border,'C');
+$pdf->Multicell(105,4,'NIP. '.($sppd->kabid?->nip ?? '-'),$border,'C');
 
-$pdf->Output('I','SPT - '.$sppd->no_surat."/".$sppd->tahun_surat." - ".$sppd->acara." - ".strtotime(now()));
+$pdf->Output('I','SPPD - '.$sppd->no_surat."/".$sppd->tahun_surat." - ".$sppd->acara." - ".strtotime(now()));
 exit;
 ?>

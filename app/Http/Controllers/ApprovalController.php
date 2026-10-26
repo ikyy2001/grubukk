@@ -94,6 +94,12 @@ class ApprovalController extends Controller
 
     public function reject(Request $request, $id)
     {
+        $user = User::getUser();
+        if (!in_array($user->role, ['Kepala Bidang', 'Keuangan', 'Admin'])) {
+            session()->flash('Failed', 'Anda tidak memiliki hak akses untuk menolak pengajuan.');
+            return back();
+        }
+
         $this->validate($request, [
             'catatan_revisi' => 'required|string|max:500'
         ]);

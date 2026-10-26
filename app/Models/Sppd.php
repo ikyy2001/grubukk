@@ -67,6 +67,7 @@ class Sppd extends Model
             'angkutan',
             'keterangan',
             'dasar_surat',
+            'reimbursement',
         ])->find($id);
 
         return collect([$sppd])->filter();

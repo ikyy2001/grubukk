@@ -20,11 +20,10 @@
       <span class="form-hint">Minimal 4 karakter</span>
     </div>
     <div class="form-field">
-      <label class="form-label" for="role">Peran <span style="color:var(--neg-text)">*</span></label>
-      <select id="role" name="role" class="select" required>
-        <option value="" disabled selected>Pilih peran</option>
-        @foreach (['Admin','Kepala Bidang','Kepala Seksi','Staff'] as $r)
-          <option value="{{ $r }}" {{ old('role') == $r ? 'selected' : '' }}>{{ $r }}</option>
+      <label class="form-label" for="role">Peran</label>
+      <select id="role" name="role" class="select">
+        @foreach (['Staff', 'Kepala Seksi'] as $r)
+          <option value="{{ $r }}" {{ old('role', 'Staff') == $r ? 'selected' : '' }}>{{ $r }}</option>
         @endforeach
       </select>
     </div>

@@ -31,7 +31,7 @@
       </div>
       <div class="form-field">
         <label for="TglLahir" class="form-label">Tanggal Lahir</label>
-        <input type="date" class="input" id="TglLahir" readonly value="{{ $user_pegawai->tgllahir }}">
+        <input type="date" class="input" id="TglLahir" readonly value="{{ $user_pegawai->tanggal_lahir }}">
       </div>
       <div class="form-field">
         <label for="Golongan" class="form-label">Golongan</label>

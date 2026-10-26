@@ -31,23 +31,46 @@ $pdf->Cell(40, 6, 'Sudah Terima Dari', $border, 0, 'L');
 $pdf->Cell(5, 6, ':', $border, 0, 'L');
 $pdf->Cell(0, 6, 'Kuasa Pengguna Anggaran Dinas Pekerjaan Umum Sumber Daya Air', $border, 1, 'L');
 
+$nominal = 0;
+if ($sppd->reimbursement && (float)$sppd->reimbursement->total_pengeluaran_riil > 0) {
+    $nominal = (float)$sppd->reimbursement->total_pengeluaran_riil;
+} elseif ($sppd->reimbursement && (float)$sppd->reimbursement->uang_muka > 0) {
+    $nominal = (float)$sppd->reimbursement->uang_muka;
+} elseif ((float)($sppd->uang_muka ?? 0) > 0) {
+    $nominal = (float)$sppd->uang_muka;
+}
+
+if ($nominal > 0) {
+    $terbilang = trim(\App\Models\Sppd::penyebut((int) $nominal)) . ' rupiah';
+    $terbilang = ucwords($terbilang);
+    $nominalTeks = 'Rp. ' . number_format($nominal, 0, ',', '.') . ' ,-';
+    $terbilangTeks = '# ' . $terbilang . ' #';
+} else {
+    $nominalTeks = 'Rp. ___________________________';
+    $terbilangTeks = '_______________________________________________________________';
+}
+
 $pdf->Cell(40, 6, 'Uang Sejumlah', $border, 0, 'L');
 $pdf->Cell(5, 6, ':', $border, 0, 'L');
-$pdf->Cell(0, 6, 'Rp. ___________________________ (___________________________)', $border, 1, 'L');
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->Cell(0, 6, $nominalTeks, $border, 1, 'L');
+$pdf->SetFont('Arial', '', 10);
 
 $pdf->Cell(40, 6, 'Untuk Pembayaran', $border, 0, 'L');
 $pdf->Cell(5, 6, ':', $border, 0, 'L');
-$pdf->Multicell(0, 6, 'Biaya Perjalanan Dinas berdasarkan SPT/SPPD Nomor 094 / ' . $sppd->no_surat . ' / 104.2 / ' . $sppd->tahun_surat . ' tanggal ' . date('d-m-Y', strtotime($sppd->tgl_surat)) . ' untuk pelaksanaan "' . $sppd->acara . '" ke ' . ($sppd->tempat->tempat_tujuan ?? '-') . ', ' . $lama . ' hari.', $border, 'J');
+$pdf->Multicell(0, 6, 'Biaya Perjalanan Dinas berdasarkan SPT/SPPD Nomor 094 / ' . $sppd->no_surat . ' / 104.2 / ' . $sppd->tahun_surat . ' tanggal ' . date('d-m-Y', strtotime($sppd->tgl_surat ?? now())) . ' untuk pelaksanaan "' . $sppd->acara . '" ke ' . ($sppd->tempat?->tempat_tujuan ?? '-') . ', ' . $lama . ' hari.', $border, 'J');
 
 $pdf->Cell(0, 6, '', $border, 1, 'C');
 $pdf->Cell(40, 6, 'Terbilang', $border, 0, 'L');
 $pdf->Cell(5, 6, ':', $border, 0, 'L');
-$pdf->Cell(0, 6, '_______________________________________________________________', $border, 1, 'L');
+$pdf->SetFont('Arial', 'I', 10);
+$pdf->Multicell(0, 6, $terbilangTeks, $border, 'L');
+$pdf->SetFont('Arial', '', 10);
 
 $pdf->Cell(0, 12, '', $border, 1, 'C');
 
 $pdf->Cell(95, 6, '', $border, 0, 'L');
-$pdf->Cell(95, 6, 'Surabaya, ' . date('d-m-Y', strtotime($sppd->tgl_surat)), $border, 1, 'C');
+$pdf->Cell(95, 6, 'Surabaya, ' . date('d-m-Y', strtotime($sppd->tgl_surat ?? now())), $border, 1, 'C');
 $pdf->Cell(95, 6, '', $border, 0, 'L');
 $pdf->Cell(95, 6, 'Yang Menerima', $border, 1, 'C');
 $pdf->Cell(0, 20, '', $border, 1, 'C');
@@ -79,9 +102,9 @@ $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(0, 6, 'Kuasa Pengguna Anggaran', $border, 1, 'C');
 $pdf->Cell(0, 18, '', $border, 1, 'C');
 $pdf->SetFont('Arial', 'BU', 10);
-$pdf->Cell(0, 6, $sppd->kabid->nama_kabid ?? '-', $border, 1, 'C');
+$pdf->Cell(0, 6, $sppd->kabid?->nama_kabid ?? '-', $border, 1, 'C');
 $pdf->SetFont('Arial', '', 10);
-$pdf->Cell(0, 6, ($sppd->kabid->jabatan ?? '-') . '  NIP. ' . ($sppd->kabid->nip ?? '-'), $border, 1, 'C');
+$pdf->Cell(0, 6, ($sppd->kabid?->jabatan ?? '-') . '  NIP. ' . ($sppd->kabid?->nip ?? '-'), $border, 1, 'C');
 
 $pdf->Output('I', 'Kwitansi - ' . $sppd->no_surat . '/' . $sppd->tahun_surat);
 exit;

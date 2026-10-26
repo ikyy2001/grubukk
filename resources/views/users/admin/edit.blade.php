@@ -46,7 +46,7 @@
         </div>
         <div class="form-field">
           <label for="TglLahir" class="form-label">Tanggal Lahir</label>
-          <input type="date" class="input" id="TglLahir" name="TglLahir" value="{{ $user_pegawai->tgllahir }}">
+          <input type="date" class="input" id="TglLahir" name="TglLahir" value="{{ $user_pegawai->tanggal_lahir }}">
         </div>
         <div class="form-field">
           <label for="Golongan" class="form-label">Golongan</label>
@@ -89,6 +89,7 @@
               <option value="2" @if ((DB::table('users')->where('role','Kepala Bidang')->count()) >= 1 && $user_pegawai->role != 'Kepala Bidang') hidden @endif @if ($user_pegawai->role == 'Kepala Bidang') selected @endif>Kepala Bidang</option>
               <option value="3" @if ($user_pegawai->role == 'Kepala Seksi') selected @endif>Kepala Seksi</option>
               <option value="4" @if ($user_pegawai->role == 'Staff') selected @endif>Staff</option>
+              <option value="5" @if ($user_pegawai->role == 'Keuangan') selected @endif>Keuangan</option>
             </select>
             @error('Role')
               <span class="invalid-feedback">{{ $message }}</span>

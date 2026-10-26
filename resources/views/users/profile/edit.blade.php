@@ -46,7 +46,7 @@
         </div>
         <div class="form-field">
           <label for="TglLahir" class="form-label">Tanggal Lahir</label>
-          <input type="date" class="input" id="TglLahir" name="TglLahir" value="{{ $user->tgllahir }}">
+          <input type="date" class="input" id="TglLahir" name="TglLahir" value="{{ $user->tanggal_lahir }}">
         </div>
         <div class="form-field">
           <label for="Golongan" class="form-label">Golongan</label>

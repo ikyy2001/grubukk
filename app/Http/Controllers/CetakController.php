@@ -28,10 +28,16 @@ class CetakController extends Controller
             return [null, $user];
         }
         $sppd = $sppd->first();
-        $sppd->update(['tgl_surat' => now()]);
+        if (!in_array($sppd->status, ['approved', 'completed'])) {
+            session()->flash('Failed', 'Dokumen cetak (SPT, SPPD, Kwitansi) hanya dapat diakses setelah SPPD mendapatkan persetujuan penuh dari Atasan dan Keuangan.');
+            return [null, $user];
+        }
+        if (!$sppd->tgl_surat) {
+            $sppd->update(['tgl_surat' => now()]);
+        }
 
         $sppduser = Sppd_user::orderBy('created_at', 'ASC')->where('sppd_id', $id)->get();
-        $sppduserpegawai = User::get();
+        $sppduserpegawai = User::withTrashed()->with(['golongan', 'jabatan', 'eselon'])->get();
         $lama = Sppd::selisih($sppd->tgl_pergi, $sppd->tgl_kembali);
         $bidang = Bidang::first();
 

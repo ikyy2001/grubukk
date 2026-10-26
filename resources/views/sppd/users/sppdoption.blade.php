@@ -42,6 +42,13 @@
         </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px">
+        @if (in_array($sppd->status, ['rejected', 'pending_atasan']))
+            <a href="{{ route('EditSPPD', $sppd->id) }}" class="btn btn--primary" style="justify-content:flex-start">
+                <x-icon name="file-edit" :size="16" /> Edit &amp; Perbaiki Pengajuan SPPD
+            </a>
+            <hr style="border:none; border-top:1px solid var(--border); margin: 4px 0">
+        @endif
+
         @if (in_array($sppd->status, ['approved', 'completed']))
             <a href="{{ route('CetakSPT') }}/{{ $sppd->id }}" target="_blank" class="btn btn--outline" style="justify-content:flex-start">
                 <x-icon name="printer" :size="16" /> Cetak SPT

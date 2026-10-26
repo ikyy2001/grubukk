@@ -30,7 +30,7 @@ Route::prefix('Users')->middleware('auth')->group(function () {
     Route::patch('Profile/Edit', 'UsersController@storeedit');
 });
 
-Route::prefix('Admin')->middleware('auth')->group(function () {
+Route::prefix('Admin')->middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('Show', 'UsersController@show')->name('Admin/Show');
     Route::get('CreateUser', 'UsersController@create')->name('Admin/CreateUser');
     Route::post('CreateUser', 'UsersController@store');
@@ -87,7 +87,8 @@ Route::prefix('SPPD')->middleware('auth')->group(function () {
     Route::get('{id}/add', 'SPPDController@addfollower');
     Route::post('{id}/add', 'SPPDController@storeaddfollower');
     Route::get('{id}/SPPD/', 'SPPDController@showsppd');
-    Route::get('{id}/edit', 'SPPDController@editsppd');
+    Route::get('{id}/edit', 'SPPDController@editsppd')->name('EditSPPD');
+    Route::patch('{id}/edit', 'SPPDController@updatesppd')->name('UpdateSPPD');
     Route::delete('{id}/delete', 'SPPDController@deletesppd');
     
 
@@ -130,7 +131,7 @@ Route::prefix('Reimbursement')->middleware('auth')->group(function () {
 Route::prefix('Cetak')->middleware('auth')->group(function () {
     Route::get('/SPT', 'CetakController@index')->name('CetakSPT');
     Route::get('/SPPD', 'CetakController@index')->name('CetakSPPD');
-    Route::get('/KWITANSI', 'CetakController@kwitansi')->name('CetakKWITANSI');
+    Route::get('/KWITANSI', 'CetakController@index')->name('CetakKWITANSI');
 
     Route::get('/SPPD/{id}', 'CetakController@SPPD');
     Route::get('/SPT/{id}', 'CetakController@SPT');

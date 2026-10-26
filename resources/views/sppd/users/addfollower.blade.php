@@ -33,22 +33,36 @@
     </div>
     @if ($sppduser->count() > 0)
         <div style="display:flex; flex-direction:column; gap:10px">
-            @php $no = 1; @endphp
+            @php
+                $no = 1;
+                $primaryUserId = optional($sppduser->first())->users_id;
+            @endphp
             @foreach ($sppduser as $sppd_data2)
                 @foreach ($sppduserpegawai as $sppd_data)
                     @if ($sppd_data->id == $sppd_data2->users_id)
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border); border-radius:10px">
                             <div>
-                                <strong>{{ $no++ }}. {{ $sppd_data->nama }}</strong>
+                                <div style="display:flex; align-items:center; gap:8px">
+                                    <strong>{{ $no++ }}. {{ $sppd_data->nama }}</strong>
+                                    @if ($sppd_data->id == $primaryUserId)
+                                        <span class="tag" style="background:rgba(59, 130, 246, 0.15); color:#2563eb; font-size:11px">Pegawai Utama</span>
+                                    @else
+                                        <span class="tag" style="background:rgba(107, 114, 128, 0.15); color:var(--text); font-size:11px">Pengikut</span>
+                                    @endif
+                                </div>
                                 <div class="muted">NIP. {{ $sppd_data->nip }}</div>
                             </div>
-                            <form action="{{ route('SPPD') }}/{{ $sppd_data2->sppd_id }}/{{ $sppd_data->id }}/delete" method="post" data-confirm="Hapus {{ $sppd_data->nama }} dari pengikut?">
-                                @method('delete')
-                                @csrf
-                                <button type="submit" class="btn btn--danger" style="height:32px; padding:0 12px">
-                                    <x-icon name="trash-2" :size="14" /> Hapus
-                                </button>
-                            </form>
+                            @if ($sppd_data->id != $primaryUserId)
+                                <form action="{{ route('SPPD') }}/{{ $sppd_data2->sppd_id }}/{{ $sppd_data->id }}/delete" method="post" data-confirm="Hapus {{ $sppd_data->nama }} dari pengikut?">
+                                    @method('delete')
+                                    @csrf
+                                    <button type="submit" class="btn btn--danger" style="height:32px; padding:0 12px">
+                                        <x-icon name="trash-2" :size="14" /> Hapus
+                                    </button>
+                                </form>
+                            @else
+                                <span class="muted" style="font-size:12px; font-style:italic">Tidak dapat dihapus</span>
+                            @endif
                         </div>
                     @endif
                 @endforeach

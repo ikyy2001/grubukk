@@ -97,6 +97,11 @@
                                 <a href="{{ route('SPPD') }}/{{ $sppd_data->id }}/SPPD" class="btn btn--outline" style="height:30px; padding:0 10px; font-size:12px" title="Lihat detail SPPD">
                                     <x-icon name="eye" :size="13" /> Detail
                                 </a>
+                                @if(in_array($sppd_data->status, ['rejected', 'pending_atasan']))
+                                <a href="{{ route('EditSPPD', $sppd_data->id) }}" class="btn btn--outline" style="height:30px; padding:0 10px; font-size:12px; color:var(--primary); border-color:var(--primary)" title="Edit atau perbaiki SPPD">
+                                    <x-icon name="file-edit" :size="13" /> Edit
+                                </a>
+                                @endif
                                 @if(in_array($sppd_data->status, ['approved', 'completed']))
                                 <a href="{{ url('Reimbursement/'.$sppd_data->id) }}" class="btn btn--primary" style="height:30px; padding:0 10px; font-size:12px" title="Laporkan biaya riil">
                                     <x-icon name="dollar-sign" :size="13" /> Biaya Riil

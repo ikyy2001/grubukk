@@ -41,26 +41,27 @@ class RegisterController extends Controller
             'nama'      => ['required', 'string', 'max:125'],
             'nip'       => ['required', 'string', 'min:3', 'max:20', 'unique:users,nip'],
             'password'  => ['required', 'string', 'min:4'],
-            'role'      => ['required', 'string', 'in:Admin,Kepala Bidang,Kepala Seksi,Staff'],
+            'role'      => ['nullable', 'string', 'in:Staff,Kepala Seksi'],
         ], [
             'nama.required' => 'Nama lengkap wajib diisi.',
             'nip.required' => 'NIP wajib diisi.',
             'nip.unique' => 'NIP ini sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 4 karakter.',
-            'role.required' => 'Role/Peran wajib dipilih.',
         ]);
     }
 
     protected function create(array $data)
     {
+        $role = in_array($data['role'] ?? '', ['Staff', 'Kepala Seksi']) ? $data['role'] : 'Staff';
+
         $user = User::create([
             'nama'          => $data['nama'],
             'nip'           => $data['nip'],
             'alamat'        => $data['alamat'] ?? null,
             'password'      => Hash::make($data['password']),
             'tanggal_lahir' => $data['tanggal_lahir'] ?? null,
-            'role'          => $data['role'],
+            'role'          => $role,
             'cek'           => 1,
         ]);
 

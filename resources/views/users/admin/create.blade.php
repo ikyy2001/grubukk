@@ -94,6 +94,7 @@
             <option value="2" @if ((DB::table('users')->where('role','Kepala Bidang')->count()) >= 1) hidden @endif>Kepala Bidang</option>
             <option value="3">Kepala Seksi</option>
             <option value="4">Staff</option>
+            <option value="5">Keuangan</option>
           </select>
           @error('Role')
             <span class="invalid-feedback">{{ $message }}</span>

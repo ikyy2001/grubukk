@@ -26,34 +26,34 @@ class SettingController extends Controller
     {
         if ($request->NomorSurat == null) {
             session()->flash('Failed', '(Gagal) Set Nomor Surat');
-        }else {
-            if(Nosurat::first()->update([
+        } else {
+            $surat = Nosurat::first() ?? Nosurat::create(['no_surat' => 1, 'tahun_surat' => date('Y')]);
+            if ($surat->update([
                 'no_surat' => $request->NomorSurat
-            ])){
+            ])) {
                 session()->flash('Success', '(Berhasil) Set Nomor Surat');
-            }else{
+            } else {
                 session()->flash('Failed', '(Gagal) Set Nomor Surat');
             }
-        } 
+        }
         return redirect(Route('Setting'));
-        
     }
     public function settahunsurat(Request $request)
     {
         if ($request->TahunSurat == null) {
             session()->flash('Failed', '(Gagal) Set Tahun Surat');
-        }else {
-            if(Nosurat::first()->update([
+        } else {
+            $surat = Nosurat::first() ?? Nosurat::create(['no_surat' => 1, 'tahun_surat' => date('Y')]);
+            if ($surat->update([
                 'tahun_surat' => $request->TahunSurat
-            ])){
+            ])) {
                 session()->flash('Success', '(Berhasil) Set Tahun Surat');
-            }else{
+            } else {
                 session()->flash('Failed', '(Gagal) Set Tahun Surat');
             }
         }
-        
+
         return redirect(Route('Setting'));
-        
     }
     public function dasarsurat()
     {
@@ -101,8 +101,9 @@ class SettingController extends Controller
     {
         if ($request->Nama_Bidang == null) {
             session()->flash('Failed', '(Gagal) Edit');
-        }else{
-            Bidang::first()->update([
+        } else {
+            $bidang = Bidang::first() ?? Bidang::create(['nama_bidang' => '']);
+            $bidang->update([
                 'nama_bidang' => $request->Nama_Bidang
             ]);
             session()->flash('Success', '(Berhasil) Edit Nama Bidang');

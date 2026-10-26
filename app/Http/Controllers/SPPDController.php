@@ -19,6 +19,7 @@ use App\Models\Skpd;
 use App\Models\Sppd_user;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SPPDController extends Controller
 {
@@ -150,9 +151,11 @@ class SPPDController extends Controller
         $sppd = Sppd::getSppd($id);
         if ($this->CekUserSppd($user, $sppd)) {
             $sppd = $sppd->first();
-            $sppd->update([
-                'tgl_surat' => now()
-            ]);
+            if (!$sppd->tgl_surat) {
+                $sppd->update([
+                    'tgl_surat' => now()
+                ]);
+            }
             return view('sppd.users.sppdoption', compact('user', 'sppd'));
         } else {
             return view('sppd.users.akses', compact('user'));
@@ -174,11 +177,94 @@ class SPPDController extends Controller
         $sppd = Sppd::getSppd($id);
         if ($this->CekUserSppd($user, $sppd)) {
             $sppd = $sppd->first();
-            $lama = Sppd::selisih($sppd->tgl_pergi, $sppd->tgl_kembali);
-            return view('sppd.users.edit', compact('user', 'sppd', 'lama'));
+            $tempatb = User::enum_get('tempat', 'tempat_berangkat');
+            $pegawai = User::orderBy('nama', 'ASC')->get();
+            $kabids = User::where('role', 'Kepala Bidang')->orderBy('nama', 'ASC')->get();
+            if ($kabids->isEmpty()) {
+                $kabids = User::orderBy('nama', 'ASC')->get();
+            }
+            $primaryPivot = Sppd_user::orderBy('created_at', 'ASC')->where('sppd_id', $sppd->id)->first();
+            $primaryUserId = $primaryPivot ? $primaryPivot->users_id : null;
+            return view('sppd.users.edit', compact('user', 'sppd', 'tempatb', 'pegawai', 'kabids', 'primaryUserId'));
         } else {
             return view('sppd.users.akses', compact('user'));
         }
+    }
+
+    public function updatesppd(Request $request, $id)
+    {
+        $user = User::getUser();
+        $sppd = Sppd::getSppd($id);
+        if (!$this->CekUserSppd($user, $sppd)) {
+            return view('sppd.users.akses', compact('user'));
+        }
+        $sppd = $sppd->first();
+
+        $this->validate($request, [
+            'Acara'             => 'required',
+            'TempatBerangkat'   => 'required',
+            'TempatTujuan'      => 'required',
+            'Tanggal_Berangkat' => 'required|date',
+            'Tanggal_Kembali'   => 'required|date|after_or_equal:Tanggal_Berangkat',
+            'file_undangan'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'uang_muka'         => 'nullable|numeric|min:0'
+        ]);
+
+        $updateData = [
+            'acara'       => $request->Acara,
+            'tgl_pergi'   => $request->Tanggal_Berangkat,
+            'tgl_kembali' => $request->Tanggal_Kembali,
+            'uang_muka'   => $request->uang_muka ?? 0,
+        ];
+
+        // Jika sebelumnya ditolak, reset status kembali ke pending_atasan agar atasan bisa mereview ulang
+        if ($sppd->status == 'rejected') {
+            $updateData['status'] = 'pending_atasan';
+            $updateData['catatan_revisi'] = null;
+        }
+
+        if ($request->hasFile('file_undangan')) {
+            $updateData['file_undangan'] = $request->file('file_undangan')->store('dokumen_sppd', 'public');
+        }
+
+        $sppd->update($updateData);
+
+        // Update Tempat
+        Tempat::updateOrCreate(
+            ['sppd_id' => $sppd->id],
+            [
+                'tempat_berangkat' => $request->TempatBerangkat,
+                'tempat_tujuan'    => $request->TempatTujuan,
+            ]
+        );
+
+        // Update Pejabat Kabid
+        if ($request->Kabid_id) {
+            $kabid = User::find($request->Kabid_id);
+            if ($kabid) {
+                Kabid::updateOrCreate(
+                    ['sppd_id' => $sppd->id],
+                    [
+                        'nama_kabid' => $kabid->nama ?? 'Kepala Bidang',
+                        'nip'        => $kabid->nip ?? '-',
+                        'jabatan'    => ($kabid->jabatan) ? $kabid->jabatan->jabatan : 'Kepala Bidang',
+                    ]
+                );
+            }
+        }
+
+        // Update Pegawai Utama
+        if ($request->Pegawai_id) {
+            $primaryPivot = Sppd_user::orderBy('created_at', 'ASC')->where('sppd_id', $sppd->id)->first();
+            if ($primaryPivot) {
+                $primaryPivot->update(['users_id' => $request->Pegawai_id]);
+            } else {
+                $sppd->user()->attach($request->Pegawai_id);
+            }
+        }
+
+        session()->flash('Success', 'Data SPPD berhasil diperbarui' . ($sppd->status == 'pending_atasan' ? ' dan diajukan ulang ke Atasan.' : '.'));
+        return redirect(route('SPPD') . '/' . $sppd->id . '/SPPD');
     }
     public function addfollower($id)
     {
@@ -207,7 +293,13 @@ class SPPDController extends Controller
     }
     public function removefollower($sppd_id, $users_id)
     {
-        Sppd_user::select()->where('sppd_id', $sppd_id)->where('users_id', $users_id)->delete();
+        $firstUser = Sppd_user::orderBy('created_at', 'ASC')->where('sppd_id', $sppd_id)->first();
+        if ($firstUser && $firstUser->users_id == $users_id) {
+            session()->flash('Failed', 'Pegawai utama yang diperintahkan tidak dapat dihapus dari SPPD.');
+            return back();
+        }
+
+        Sppd_user::where('sppd_id', $sppd_id)->where('users_id', $users_id)->delete();
         session()->flash('Success', 'Berhasil Menghapus Pengikut');
         return back();
     }
@@ -323,9 +415,24 @@ class SPPDController extends Controller
     }
     public function deletesppd($id)
     {
-        $sppd = Sppd::select('*')->where('id', $id)->first();
-        Sppd::destroy($sppd);
+        $user = User::getUser();
+        $sppd = Sppd::find($id);
+        if (!$sppd) {
+            session()->flash('Failed', 'SPPD tidak ditemukan');
+            return back();
+        }
+        if (!$this->CekUserSppd($user, collect([$sppd]))) {
+            session()->flash('Failed', 'Anda tidak memiliki hak untuk menghapus SPPD ini');
+            return back();
+        }
+
+        DB::transaction(function () use ($sppd, $id) {
+            DasarSurat::where('sppd_id', $id)->delete();
+            $sppd->user()->detach();
+            $sppd->delete();
+        });
+
         session()->flash('Success', 'Berhasil Menghapus SPPD');
-        return back();
+        return redirect()->route('SPPD');
     }
 }
